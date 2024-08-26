@@ -1,0 +1,91 @@
+from .database import get_connection
+from datetime import date
+
+class Case:
+    @staticmethod
+    def search_by_case_number(case_number, table_name):
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute(f"SELECT * FROM {table_name} WHERE case_number = %s", (case_number,))
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        return rows
+
+    @staticmethod
+    def search_by_case_title(case_title, table_name):
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute(f"SELECT * FROM {table_name} WHERE case_title ILIKE %s", ('%' + case_title + '%',))
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        return rows
+
+    @staticmethod
+    def case_number_exists(case_number, location, table_name):
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute(f"SELECT 1 FROM {table_name} WHERE case_number = %s AND location = %s", (case_number, location))
+        exists = cur.fetchone() is not None
+        cur.close()
+        conn.close()
+        return exists
+
+    @staticmethod
+    def get_cases_by_date(selected_date, table_name):
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute(f"SELECT * FROM {table_name} WHERE upcoming_date = %s", (selected_date,))
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        return rows
+
+    @staticmethod
+    def get_todays_case_list(table_name):
+        today = date.today()
+        return Case.get_cases_by_date(today, table_name)
+
+    @staticmethod
+    def get_pending_cases(table_name):
+        today = date.today()
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute(f"SELECT * FROM {table_name} WHERE upcoming_date <= %s", (today,))
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        return rows
+
+    @staticmethod
+    def update_case_data(case_data, table_name):
+        conn = get_connection()
+        cur = conn.cursor()
+        for _, row in case_data.iterrows():
+            update_query = f"""
+                UPDATE {table_name} SET
+                    case_number = %s,
+                    case_title = %s,
+                    case_type = %s,
+                    location = %s,
+                    company_name = %s,
+                    upcoming_date = %s,
+                    previous_dates = %s,
+                    stage = %s,
+                    remarks = %s,
+                    status = %s,
+                    claimant_advocate_name = %s,
+                    claimant_advocate_mobile_number = %s
+                WHERE id = %s
+            """
+            cur.execute(update_query, (
+                row["Case Number"], row["Case Title"], row["Case Type"], row["Location"],
+                row["Company Name"], row["Upcoming Date"], row["Previous Dates"], row["Stage"],
+                row["Remarks"], row["Status"], row["Claimant Advocate Name"],
+                row["Claimant Advocate Mobile Number"], row["ID"]
+            ))
+
+        conn.commit()
+        cur.close()
+        conn.close()
