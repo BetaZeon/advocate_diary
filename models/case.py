@@ -2,6 +2,38 @@ from .database import get_connection
 from datetime import date
 
 class Case:
+
+    @staticmethod
+    def add_case(case_data):
+        conn = get_connection()
+        cur = conn.cursor()
+        insert_query = """
+            INSERT INTO case_records (
+                case_number, case_title, case_type, location, company_name, 
+                upcoming_date, stage, remarks, status, 
+                claimant_advocate_name, claimant_advocate_mobile_number
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        parameters = (
+            case_data["case_number"], case_data["case_title"], case_data["case_type"], case_data["location"], 
+            case_data["company_name"], case_data["upcoming_date"], case_data["stage"], case_data["remarks"], 
+            case_data["status"], case_data["claimant_advocate_name"], case_data["claimant_advocate_mobile_number"]
+        )
+        cur.execute(insert_query, parameters)
+        conn.commit()
+        cur.close()
+        conn.close()
+
+    @staticmethod
+    def case_number_exists(case_number, location, table_name):
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute(f"SELECT 1 FROM {table_name} WHERE case_number = %s AND location = %s", (case_number, location, table_name))
+        exists = cur.fetchone() is not None
+        cur.close()
+        conn.close()
+        return exists
+
     @staticmethod
     def search_by_case_number(case_number, table_name):
         conn = get_connection()
@@ -89,3 +121,12 @@ class Case:
         conn.commit()
         cur.close()
         conn.close()
+
+    def search_by_company_name(company_name, table_name):
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute(f"SELECT * FROM {table_name} WHERE company_name ILIKE %s", ('%' + company_name + '%',))
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        return rows

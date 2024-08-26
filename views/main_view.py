@@ -16,6 +16,7 @@ def main():
         st.button("Today's Case List", on_click=lambda: st.session_state.update(page="todays_case_list"))
         st.button("Cases by Date", on_click=lambda: st.session_state.update(page="cases_by_date"))
         st.button("Pending Cases", on_click=lambda: st.session_state.update(page="pending_cases"))
+        st.button("Cases By Company Name", on_click=lambda: st.session_state.update(page="cases_by_company_name"))
 
     if st.session_state.page == "add_case":
         case_view.add_case()
@@ -31,3 +32,5 @@ def main():
     
     if st.session_state.page == "pending_cases":
         case_view.pending_cases()
+    if st.session_state.page == "cases_by_company_name":
+        case_view.search_cases_by_company_name()

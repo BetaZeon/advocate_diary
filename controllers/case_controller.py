@@ -10,9 +10,9 @@ class CaseController:
         else:
             return Case.search_by_case_title(search_query, self.table_name)
 
-    def add_new_case(self, case_data):
+    def add_new_case(self, case_data, location):
         # Implement the logic to add a new case
-        pass
+        return Case.case_number_exists(case_data, location, self.table_name)
 
     def update_cases(self, case_data):
         Case.update_case_data(case_data, self.table_name)
@@ -25,3 +25,6 @@ class CaseController:
 
     def get_pending_cases(self):
         return Case.get_pending_cases(self.table_name)
+
+    def search_case_by_company(self,company_name):
+        return Case.search_by_company_name(company_name, self.table_name)
