@@ -71,9 +71,6 @@ class CaseView:
                     except Exception as e:
                         st.error(f"Error adding case: {e}")
 
-        # Add the button to navigate to the main page
-        go_to_main_page_button()
-
     def search_case(self):
         st.header("Search Case")
         search_criteria = st.selectbox("Search Case By", ["Case Number", "Case Title"])
@@ -86,9 +83,6 @@ class CaseView:
             else:
                 df_cases = pd.DataFrame(cases, columns=config_loader.load_config()['headers'])
                 st.dataframe(df_cases)
-        # Add the button to navigate to the main page
-        go_to_main_page_button()
-
 
     def search_cases_by_company_name(self):
         st.header("Search Cases By Company Name")
@@ -102,9 +96,6 @@ class CaseView:
         else:
            df_cases = pd.DataFrame(cases, columns=config_loader.load_config()['headers'])
            st.dataframe(df_cases)
-        # Add the button to navigate to the main page
-        go_to_main_page_button()
-
 
     def todays_case_list(self):
         st.header("Today's Case List")
@@ -114,8 +105,6 @@ class CaseView:
         else:
             df_cases = pd.DataFrame(cases, columns=config_loader.load_config()['headers'])
             st.dataframe(df_cases)
-        # Add the button to navigate to the main page
-        go_to_main_page_button()
 
     def cases_by_date(self):
         st.header("Cases by Date")
@@ -127,8 +116,6 @@ class CaseView:
             else:
                 df_cases = pd.DataFrame(cases, columns=config_loader.load_config()['headers'])
                 st.dataframe(df_cases)
-        # Add the button to navigate to the main page
-        go_to_main_page_button()
 
     def pending_cases(self):
         st.header("Pending Cases")
@@ -138,6 +125,3 @@ class CaseView:
         else:
             df_cases = pd.DataFrame(cases, columns=config_loader.load_config()['headers'])
             st.dataframe(df_cases)
-        # Add the button to navigate to the main page
-        go_to_main_page_button()
-
