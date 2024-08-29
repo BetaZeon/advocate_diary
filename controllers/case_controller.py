@@ -14,8 +14,8 @@ class CaseController:
         # Implement the logic to add a new case
         return Case.case_number_exists(case_data, location, self.table_name)
 
-    def update_cases(self, case_data):
-        Case.update_case_data(case_data, self.table_name)
+    def update_cases(self, case_id, new_upcoming_date):
+        Case.update_case_data(case_id, new_upcoming_date, self.table_name)
 
     def get_todays_cases(self):
         return Case.get_todays_case_list(self.table_name)

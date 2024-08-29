@@ -1,9 +1,11 @@
 import streamlit as st
 from controllers.case_controller import CaseController
-from views.utils import go_to_main_page_button
 from models.case import Case
 import pandas as pd
 import config_loader
+from views.utils import update_cases_and_previous_dates
+
+
 class CaseView:
 
     def __init__(self):
@@ -108,14 +110,34 @@ class CaseView:
 
     def cases_by_date(self):
         st.header("Cases by Date")
-        selected_date = st.date_input("Select Date")
-        if st.button("Get Cases"):
-            cases = self.controller.get_cases_by_date(selected_date)
-            if not cases:
-                st.write(f"No cases found for {selected_date}.")
-            else:
-                df_cases = pd.DataFrame(cases, columns=config_loader.load_config()['headers'])
-                st.dataframe(df_cases)
+        with st.form("cases_by_date_form"):
+            selected_date = st.date_input("Select Date", value=pd.Timestamp.now().date())
+            submit_button = st.form_submit_button("Get Cases")
+
+            # Fetch data if the button is clicked or if it's the current date
+            if submit_button or selected_date == pd.Timestamp.now().date():
+                cases = self.controller.get_cases_by_date(selected_date)
+                if not cases:
+                    st.write(f"No cases found for {selected_date}.")
+                    if "df_value" in st.session_state:
+                        del st.session_state.df_value
+                else:
+                    df_cases = pd.DataFrame(cases, columns=config_loader.load_config()['headers'])
+                    st.session_state.df_value = df_cases
+
+        if "df_value" in st.session_state:
+            df_cases = st.session_state.df_value
+
+            column_config = {col: st.column_config.Column(disabled=True) for col in df_cases.columns if
+                             col not in ["Upcoming Date", "Stage"]}
+
+            edited_df = st.data_editor(
+                df_cases,
+                num_rows="fixed",
+                column_config=column_config,
+            )
+            if st.button("Update Cases"):
+                update_cases_and_previous_dates(self, edited_df, selected_date)
 
     def pending_cases(self):
         st.header("Pending Cases")
@@ -124,4 +146,27 @@ class CaseView:
             st.write("No pending cases found.")
         else:
             df_cases = pd.DataFrame(cases, columns=config_loader.load_config()['headers'])
-            st.dataframe(df_cases)
+            # st.dataframe(df_cases)
+            st.session_state.df_value = df_cases
+
+            if "df_value" in st.session_state:
+                df_cases = st.session_state.df_value
+
+                # Create a column_config dictionary to disable all columns except "Upcoming Date" and "Stage"
+                column_config = {col: st.column_config.Column(disabled=True) for col in df_cases.columns if
+                                 col not in ["Upcoming Date", "Stage"]}
+
+                # Display editable DataFrame with column configuration
+                edited_df = st.data_editor(
+                    df_cases,
+                    num_rows="fixed",
+                    column_config=column_config,
+                )
+
+                # Check if the data_editor was edited
+                if st.button("Update Cases"):
+                    if edited_df is not None:
+                        self.controller.update_cases(edited_df)
+                        st.session_state.df_value = edited_df
+                    else:
+                        st.write("No changes detected.")

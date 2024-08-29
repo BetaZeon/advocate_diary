@@ -54,15 +54,15 @@ class Case:
         conn.close()
         return rows
 
-    @staticmethod
-    def case_number_exists(case_number, location, table_name):
-        conn = get_connection()
-        cur = conn.cursor()
-        cur.execute(f"SELECT 1 FROM {table_name} WHERE case_number = %s AND location = %s", (case_number, location))
-        exists = cur.fetchone() is not None
-        cur.close()
-        conn.close()
-        return exists
+    # @staticmethod
+    # def case_number_exists(case_number, location, table_name):
+    #     conn = get_connection()
+    #     cur = conn.cursor()
+    #     cur.execute(f"SELECT 1 FROM {table_name} WHERE case_number = %s AND location = %s", (case_number, location))
+    #     exists = cur.fetchone() is not None
+    #     cur.close()
+    #     conn.close()
+    #     return exists
 
     @staticmethod
     def get_cases_by_date(selected_date, table_name):
@@ -91,36 +91,87 @@ class Case:
         return rows
 
     @staticmethod
-    def update_case_data(case_data, table_name):
-        conn = get_connection()
+    def update_case_data(case_id, upcoming_date, table_name):
+        conn = get_connection()  # Assuming get_connection() is defined to connect to your PostgreSQL DB
         cur = conn.cursor()
-        for _, row in case_data.iterrows():
-            update_query = f"""
-                UPDATE {table_name} SET
-                    case_number = %s,
-                    case_title = %s,
-                    case_type = %s,
-                    location = %s,
-                    company_name = %s,
-                    upcoming_date = %s,
-                    previous_dates = %s,
-                    stage = %s,
-                    remarks = %s,
-                    status = %s,
-                    claimant_advocate_name = %s,
-                    claimant_advocate_mobile_number = %s
+
+        # Fetch the existing upcoming_date and previous_dates
+        fetch_query = f"""
+                SELECT upcoming_date, previous_dates
+                FROM {table_name}
                 WHERE id = %s
             """
+        cur.execute(fetch_query, (case_id,))
+        result = cur.fetchone()
+
+        if result is not None:
+            current_upcoming_date, previous_dates = result
+
+            # Convert previous_dates to a list
+            if previous_dates:
+                previous_dates_list = previous_dates.split(", ")
+            else:
+                previous_dates_list = []
+
+            # Check if the upcoming date is in the previous dates list
+            if str(current_upcoming_date) not in previous_dates_list:
+                previous_dates_list.append(str(current_upcoming_date))
+
+            # Check if the new upcoming date is not already in the previous dates list
+            if str(upcoming_date) in previous_dates_list:
+                return "The upcoming date is already present in the previous dates list."
+
+            # Update the previous_dates and upcoming_date columns
+            update_query = f"""
+                    UPDATE {table_name} SET
+                        upcoming_date = %s,
+                        previous_dates = %s
+                    WHERE id = %s
+                """
             cur.execute(update_query, (
-                row["Case Number"], row["Case Title"], row["Case Type"], row["Location"],
-                row["Company Name"], row["Upcoming Date"], row["Previous Dates"], row["Stage"],
-                row["Remarks"], row["Status"], row["Claimant Advocate Name"],
-                row["Claimant Advocate Mobile Number"], row["ID"]
+                upcoming_date,
+                ", ".join(previous_dates_list),
+                case_id
             ))
 
-        conn.commit()
-        cur.close()
-        conn.close()
+            conn.commit()
+            cur.close()
+            conn.close()
+
+            return "Case updated successfully."
+        else:
+            cur.close()
+            conn.close()
+            return "Case not found."
+        # conn = get_connection()
+        # cur = conn.cursor()
+        # for _, row in case_data.iterrows():
+        #     update_query = f"""
+        #         UPDATE {table_name} SET
+        #             case_number = %s,
+        #             case_title = %s,
+        #             case_type = %s,
+        #             location = %s,
+        #             company_name = %s,
+        #             upcoming_date = %s,
+        #             previous_dates = %s,
+        #             stage = %s,
+        #             remarks = %s,
+        #             status = %s,
+        #             claimant_advocate_name = %s,
+        #             claimant_advocate_mobile_number = %s
+        #         WHERE id = %s
+        #     """
+        #     cur.execute(update_query, (
+        #         row["Case Number"], row["Case Title"], row["Case Type"], row["Location"],
+        #         row["Company Name"], row["Upcoming Date"], row["Previous Dates"], row["Stage"],
+        #         row["Remarks"], row["Status"], row["Claimant Advocate Name"],
+        #         row["Claimant Advocate Mobile Number"], row["ID"]
+        #     ))
+        #
+        # conn.commit()
+        # cur.close()
+        # conn.close()
 
     def search_by_company_name(company_name, table_name):
         conn = get_connection()
