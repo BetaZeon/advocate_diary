@@ -1,0 +1,53 @@
+# Python specific
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment
+.env
+.venv/
+env/
+ENV/
+venv/
+ENV.bak/
+venv.bak/
+.streamlit/
+
+# Streamlit specific
+.streamlit/secrets.toml
+
+# Jupyter Notebook Checkpoints
+.ipynb_checkpoints
+
+# Byte-compiled / optimized / DLL files
+*.egg-info/
+.eggs/
+*.egg
+*.pyd
+*.so
+*.dylib
+
+# Logs
+*.log
+
+# Test outputs
+.coverage
+.tox/
+.pytest_cache/
+
+# VirtualBox and Vagrant files
+*.box
+*.vmdk
+*.ovf
+*.log
+.vagrant/
+
+# JetBrains IDE files
+.idea/
+
+# VSCode IDE files
+.vscode/
+
+# MacOS files
+.DS_Store
