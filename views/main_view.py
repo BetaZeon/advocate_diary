@@ -1,7 +1,17 @@
 import streamlit as st
 from views.case_view import CaseView
 
+
 def set_custom_style():
+    hide_st_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
+            </style>
+            """
+    st.markdown(hide_st_style, unsafe_allow_html=True)
+
     st.markdown("""
         <style>
             /* Main layout */
@@ -9,7 +19,7 @@ def set_custom_style():
                 padding-top: 1rem;
                 padding-bottom: 2rem;
             }
-            
+
             /* Title */
             .main-title {
                 font-size: 2.8em;
@@ -19,7 +29,7 @@ def set_custom_style():
                 margin-bottom: 2rem;
                 text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
             }
-            
+
             /* Sidebar */
             [data-testid="stSidebar"] {
                 background-color: #F3F4F6 !important;
@@ -51,7 +61,7 @@ def set_custom_style():
                 background-color: #EFF6FF;
                 border-color: #1E3A8A;
             }
-            
+
             /* Move sidebar content down */
             [data-testid="stSidebar"] .sidebar-content {
                 display: flex !important;
@@ -61,7 +71,7 @@ def set_custom_style():
                 padding-top: 100vh !important; /* Adjust this value to move content up or down */
                 box-sizing: border-box !important;
             }
-            
+
             /* Content area */
             .content-container {
                 background-color: #ffffff;
@@ -70,7 +80,7 @@ def set_custom_style():
                 padding: 2rem;
                 margin-top: 1rem;
             }
-            
+
             /* Headers */
             h2 {
                 color: #1E3A8A;
@@ -79,13 +89,13 @@ def set_custom_style():
                 border-bottom: 2px solid #E5E7EB;
                 padding-bottom: 0.5rem;
             }
-            
+
             /* Form inputs */
             .stTextInput>div>div>input, .stSelectbox>div>div>select {
                 border-radius: 0.375rem;
                 border: 1px solid #D1D5DB;
             }
-            
+
             /* Buttons in content area */
             .stButton>button {
                 background-color: #1E3A8A;
@@ -101,6 +111,7 @@ def set_custom_style():
             }
         </style>
     """, unsafe_allow_html=True)
+
 
 def main():
     st.set_page_config(page_title="⚖️ Case Management System", layout="wide")
