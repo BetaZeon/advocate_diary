@@ -52,27 +52,30 @@ class CaseView:
                         st.error(error)
                 st.error("Please fix the errors above.")
             else:
-                if self.controller.add_new_case(case_number, location):
-                    st.error("Case number already exists for the selected location")
-                else:
-                    case_data = {
-                        "case_number": case_number,
-                        "case_title": case_title,
-                        "case_type": case_type,
-                        "location": location,
-                        "company_name": company_name,
-                        "upcoming_date": upcoming_date,
-                        "stage": stage,
-                        "remarks": remarks,
-                        "status": status,
-                        "claimant_advocate_name": claimant_advocate_name,
-                        "claimant_advocate_mobile_number": claimant_advocate_mobile_number
-                    }
-                    try:
-                        Case.add_case(case_data,)
-                        st.success("Case added successfully!")
-                    except Exception as e:
-                        st.error(f"Error adding case: {e}")
+                # Show spinner while case is being added
+                with st.spinner("Adding new case..."):
+                    if self.controller.add_new_case(case_number, location):
+                        st.error("Case number already exists for the selected location")
+                    else:
+                        case_data = {
+                            "case_number": case_number,
+                            "case_title": case_title,
+                            "case_type": case_type,
+                            "location": location,
+                            "company_name": company_name,
+                            "upcoming_date": upcoming_date,
+                            "stage": stage,
+                            "remarks": remarks,
+                            "status": status,
+                            "claimant_advocate_name": claimant_advocate_name,
+                            "claimant_advocate_mobile_number": claimant_advocate_mobile_number
+                        }
+                        try:
+                            Case.add_case(case_data)
+                            st.success("Case added successfully!")
+                        except Exception as e:
+                            st.error(f"Error adding case: {e}")
+
 
     def search_case(self):
         st.header("Search Case")
