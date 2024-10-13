@@ -24,15 +24,27 @@ class Case:
         cur.close()
         conn.close()
 
+    # @staticmethod
+    # def case_number_exists(case_number, location, table_name):
+    #     conn = get_connection()
+    #     cur = conn.cursor()
+    #     cur.execute(f"SELECT 1 FROM {table_name} WHERE case_number = %s AND location = %s", (case_number, location, table_name))
+    #     exists = cur.fetchone() is not None
+    #     cur.close()
+    #     conn.close()
+    #     return exists
+
     @staticmethod
     def case_number_exists(case_number, location, table_name):
         conn = get_connection()
         cur = conn.cursor()
-        cur.execute(f"SELECT 1 FROM {table_name} WHERE case_number = %s AND location = %s", (case_number, location, table_name))
+        # Safely include table_name using f-string and use parameterized query for other variables
+        cur.execute(f"SELECT 1 FROM {table_name} WHERE case_number = %s AND location = %s", (case_number, location))
         exists = cur.fetchone() is not None
         cur.close()
         conn.close()
         return exists
+
 
     @staticmethod
     def search_by_case_number(case_number, table_name):
