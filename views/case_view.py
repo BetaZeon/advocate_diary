@@ -28,12 +28,12 @@ class CaseView:
         with col1:
             case_number = st.text_input("Case Number", max_chars=10, key="case_number")
             case_title = st.text_input("Case Title", max_chars=255, key="case_title")
-            case_type = st.selectbox("Case Type", ["MACT", "WCC", "DCF", "PLA"], key="case_type")
-            location = st.selectbox("Location", ["Farrukhabad", "Kanpur Nagar - North", "Kanpur Nagar - South", "Kannauj"], key="location")
-            company_name = st.selectbox("Company Name", ["BAGIC", "SGIC", "OIC", "UIIC", "NIC", "ICICI", "UNIVERSAL", "MAGMA", "TAGIC", "CHOLA MS", "FUTURE", "KOTAK", "ACKO", "SBI", "HDFC", "RELIANCE", "LIBERTY", "IFFCO", "ZUNO"], key="company_name")
+            case_type = st.selectbox("Case Type", config_loader.load_config()['case_types'], key="case_type")
+            location = st.selectbox("Location", config_loader.load_config()['locations'], key="location")
+            company_name = st.selectbox("Company Name", config_loader.load_config()['company_names'], key="company_name")
             upcoming_date = st.date_input("Upcoming Date", key="upcoming_date")
             stage = st.text_input("Stage", max_chars=50, key="stage")
-            status = st.selectbox("Status", ["OPEN", "COMPROMISED", "DD", "AWARD"], key="status")
+            status = st.selectbox("Status", config_loader.load_config()['statuses'], key="status")
             claimant_advocate_name = st.text_input("Claimant Advocate Name", max_chars=100, key="claimant_advocate_name")
             claimant_advocate_mobile_number = st.text_input("Claimant Advocate Mobile Number", max_chars=15, key="claimant_advocate_mobile_number")
             remarks = st.text_area("Remarks", key="remarks")
@@ -52,27 +52,30 @@ class CaseView:
                         st.error(error)
                 st.error("Please fix the errors above.")
             else:
-                if self.controller.add_new_case(case_number, location):
-                    st.error("Case number already exists for the selected location")
-                else:
-                    case_data = {
-                        "case_number": case_number,
-                        "case_title": case_title,
-                        "case_type": case_type,
-                        "location": location,
-                        "company_name": company_name,
-                        "upcoming_date": upcoming_date,
-                        "stage": stage,
-                        "remarks": remarks,
-                        "status": status,
-                        "claimant_advocate_name": claimant_advocate_name,
-                        "claimant_advocate_mobile_number": claimant_advocate_mobile_number
-                    }
-                    try:
-                        Case.add_case(case_data,)
-                        st.success("Case added successfully!")
-                    except Exception as e:
-                        st.error(f"Error adding case: {e}")
+                # Show spinner while case is being added
+                with st.spinner("Adding new case..."):
+                    if self.controller.add_new_case(case_number, location):
+                        st.error("Case number already exists for the selected location")
+                    else:
+                        case_data = {
+                            "case_number": case_number,
+                            "case_title": case_title,
+                            "case_type": case_type,
+                            "location": location,
+                            "company_name": company_name,
+                            "upcoming_date": upcoming_date,
+                            "stage": stage,
+                            "remarks": remarks,
+                            "status": status,
+                            "claimant_advocate_name": claimant_advocate_name,
+                            "claimant_advocate_mobile_number": claimant_advocate_mobile_number
+                        }
+                        try:
+                            Case.add_case(case_data)
+                            st.success("Case added successfully!")
+                        except Exception as e:
+                            st.error(f"Error adding case: {e}")
+
 
     def search_case(self):
         st.header("Search Case")
@@ -90,9 +93,7 @@ class CaseView:
     def search_cases_by_company_name(self):
         st.header("Search Cases By Company Name")
         company_name = st.selectbox("Company Name",
-                                    ["BAGIC", "SGIC", "OIC", "UIIC", "NIC", "ICICI", "UNIVERSAL", "MAGMA", "TAGIC",
-                                     "CHOLA MS", "FUTURE", "KOTAK", "ACKO", "SBI", "HDFC", "RELIANCE", "LIBERTY",
-                                     "IFFCO", "ZUNO"], key="company_name")
+                                    config_loader.load_config()['company_names'], key="company_name")
         cases = self.controller.search_case_by_company(company_name)
         if not cases:
            st.write("No cases found.")
