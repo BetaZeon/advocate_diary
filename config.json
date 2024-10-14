@@ -7,10 +7,63 @@
         "password": "your_password"
     },
     "table_name": "case_records",
-    "locations": ["Farrukhabad", "Kanpur Nagar - North", "Kanpur Nagar - South", "Kannauj"],
-    "case_types": ["MACT", "WCC", "DCF", "PLA"],
-    "company_names": ["GODIGIT","BAGIC", "SGIC", "OIC", "UIIC", "NIC", "ICICI", "UNIVERSAL", "MAGMA", "TAGIC", "CHOLA MS", "FUTURE", "KOTAK", "ACKO", "SBI", "HDFC", "RELIANCE", "LIBERTY", "IFFCO", "ZUNO"],
-    "statuses": ["OPEN", "COMPROMISED", "DD", "AWARD"],
-    "headers": ["ID", "Case Number", "Case Title", "Case Type", "Location", "Company Name", "Upcoming Date", "Previous Dates", "Stage", "Remarks", "Status", "Claimant Advocate Name", "Claimant Advocate Mobile Number"],
-    "editableHeaders": ["Upcoming Date", "Stage"]
+    "locations": [
+        "Farrukhabad",
+        "Kanpur Nagar - North",
+        "Kanpur Nagar - South",
+        "Kannauj"
+    ],
+    "case_types": [
+        "MACT",
+        "WCC",
+        "DCF",
+        "PLA"
+    ],
+    "company_names": [
+        "GODIGIT",
+        "BAGIC",
+        "SGIC",
+        "OIC",
+        "UIIC",
+        "NIC",
+        "ICICI",
+        "UNIVERSAL",
+        "MAGMA",
+        "TAGIC",
+        "CHOLA MS",
+        "FUTURE",
+        "KOTAK",
+        "ACKO",
+        "SBI",
+        "HDFC",
+        "RELIANCE",
+        "LIBERTY",
+        "IFFCO",
+        "ZUNO"
+    ],
+    "statuses": [
+        "OPEN",
+        "COMPROMISED",
+        "DD",
+        "AWARD"
+    ],
+    "headers": [
+        "ID",
+        "Case Number",
+        "Case Title",
+        "Case Type",
+        "Location",
+        "Company Name",
+        "Upcoming Date",
+        "Previous Dates",
+        "Stage",
+        "Remarks",
+        "Status",
+        "Claimant Advocate Name",
+        "Claimant Advocate Mobile Number"
+    ],
+    "editableHeaders": [
+        "Upcoming Date",
+        "Stage"
+    ]
 }

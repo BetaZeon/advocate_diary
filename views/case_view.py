@@ -167,3 +167,51 @@ class CaseView:
         else:
             df_cases = pd.DataFrame(cases, columns=config_loader.load_config()['headers'])
             st.dataframe(df_cases)
+    
+    def update_config(self):
+        st.header("Update Config")
+        config = config_loader.load_config()
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.subheader("Case Types")
+            case_types = st.multiselect("Select Case Types", config['case_types'], default=config['case_types'])
+            new_case_type = st.text_input("Add New Case Type", "")
+            if st.button("Add Case Type"):
+                if new_case_type:
+                    config['case_types'].append(new_case_type)
+                    config_loader.save_config(config)
+                    st.success("Case Type added successfully!")
+
+        with col2:
+            st.subheader("Statuses")
+            statuses = st.multiselect("Select Statuses", config['statuses'], default=config['statuses'])
+            new_status = st.text_input("Add New Status", "")
+            if st.button("Add Status"):
+                if new_status:
+                    config['statuses'].append(new_status)
+                    config_loader.save_config(config)
+                    st.success("Status added successfully!")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.subheader("Company Names")
+            company_names = st.multiselect("Select Company Names", config['company_names'], default=config['company_names'])
+            new_company_name = st.text_input("Add New Company Name", "")
+            if st.button("Add Company Name"):
+                if new_company_name:
+                    config['company_names'].append(new_company_name)
+                    config_loader.save_config(config)
+                    st.success("Company Name added successfully!")
+
+        with col2:
+            st.subheader("Locations")
+            locations = st.multiselect("Select Locations", config['locations'], default=config['locations'])
+            new_location = st.text_input("Add New Location", "")
+            if st.button("Add Location"):
+                if new_location:
+                    config['locations'].append(new_location)
+                    config_loader.save_config(config)
+                    st.success("Location added successfully!")
