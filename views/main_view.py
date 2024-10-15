@@ -131,7 +131,8 @@ def main():
             "📆 Cases by Date": "cases_by_date",
             "⏳ Pending Cases": "pending_cases",
             "🏢 Cases By Company Name": "cases_by_company_name",
-            "📝 Update Config": "update_config"
+            "📝 Update Config": "update_config",
+            "✍️ Update Case": "update_case"
         }
         for label, page in nav_options.items():
             if st.button(label):
@@ -161,3 +162,5 @@ def main():
                 case_view.search_cases_by_company_name()
             elif st.session_state.page == "update_config":
                 case_view.update_config()
+            elif st.session_state.page == "update_case":
+                case_view.update_case()

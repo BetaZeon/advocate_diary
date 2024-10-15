@@ -75,7 +75,57 @@ class CaseView:
                             st.success("Case added successfully!")
                         except Exception as e:
                             st.error(f"Error adding case: {e}")
+    
+    def update_case(self):
+        st.header("Update Case")
+        search_query = st.text_input("Enter Case Number or Case Title")
+        
+        if st.button("Search"):
+            case = self.controller.get_case_by_number_or_title(search_query)
+            if case:
+                st.session_state.case_to_update = case
+                st.success("Case found. Please update the fields below.")
+            else:
+                st.error("Case not found.")
 
+        if 'case_to_update' in st.session_state:
+            case = st.session_state.case_to_update
+            case_id = case[0]  # Assuming the ID is the first column
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                case_number = st.text_input("Case Number", value=case[1], max_chars=10)
+                case_title = st.text_input("Case Title", value=case[2], max_chars=255)
+                case_type = st.selectbox("Case Type", config_loader.load_config()['case_types'], index=config_loader.load_config()['case_types'].index(case[3]) if case[3] in config_loader.load_config()['case_types'] else 0)
+                location = st.selectbox("Location", config_loader.load_config()['locations'], index=config_loader.load_config()['locations'].index(case[4]) if case[4] in config_loader.load_config()['locations'] else 0)
+                company_name = st.selectbox("Company Name", config_loader.load_config()['company_names'], index=config_loader.load_config()['company_names'].index(case[5]) if case[5] in config_loader.load_config()['company_names'] else 0)
+                upcoming_date = st.date_input("Upcoming Date", value=case[6] if case[6] else None)
+                stage = st.text_input("Stage", value=case[8], max_chars=50)                
+                # Handle the case where status might be empty or not in the list
+                statuses = config_loader.load_config()['statuses']
+                status_index = statuses.index(case[10]) if case[10] in statuses else 0
+                status = st.selectbox("Status", statuses, index=status_index)
+                
+                claimant_advocate_name = st.text_input("Claimant Advocate Name", value=case[11], max_chars=100)
+                claimant_advocate_mobile_number = st.text_input("Claimant Advocate Mobile Number", value=case[12], max_chars=15)
+                remarks = st.text_area("Remarks", value=case[9])
+            if st.button("Update"):
+                case_data = {
+                    "case_number": case_number,
+                    "case_title": case_title,
+                    "case_type": case_type,
+                    "location": location,
+                    "company_name": company_name,
+                    "upcoming_date": upcoming_date,
+                    "stage": stage,
+                    "remarks": remarks,
+                    "status": status,
+                    "claimant_advocate_name": claimant_advocate_name,
+                    "claimant_advocate_mobile_number": claimant_advocate_mobile_number
+                }
+                update_status = self.controller.update_case(case_id, case_data)
+                st.write(update_status)
 
     def search_case(self):
         st.header("Search Case")
