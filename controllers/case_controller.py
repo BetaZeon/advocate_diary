@@ -28,3 +28,9 @@ class CaseController:
 
     def search_case_by_company(self,company_name):
         return Case.search_by_company_name(company_name, self.table_name)
+    
+    def get_case_by_number_or_title(self, search_query):
+        return Case.get_case_by_number_or_title(search_query, self.table_name)
+
+    def update_case(self, case_id, case_data):
+        return Case.update_case(case_id, case_data, self.table_name)

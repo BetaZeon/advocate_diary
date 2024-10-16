@@ -193,3 +193,36 @@ class Case:
         cur.close()
         conn.close()
         return rows
+    
+    @staticmethod
+    def get_case_by_number_or_title(search_query, table_name):
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute(f"SELECT * FROM {table_name} WHERE case_number = %s OR case_title ILIKE %s", (search_query, f"%{search_query}%"))
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        return row
+
+    @staticmethod
+    def update_case(case_id, case_data, table_name):
+        conn = get_connection()
+        cur = conn.cursor()
+        update_query = f"""
+            UPDATE {table_name} SET
+                case_number = %s, case_title = %s, case_type = %s, location = %s,
+                company_name = %s, upcoming_date = %s, stage = %s, remarks = %s,
+                status = %s, claimant_advocate_name = %s, claimant_advocate_mobile_number = %s
+            WHERE id = %s
+        """
+        cur.execute(update_query, (
+            case_data["case_number"], case_data["case_title"], case_data["case_type"],
+            case_data["location"], case_data["company_name"], case_data["upcoming_date"],
+            case_data["stage"], case_data["remarks"], case_data["status"],
+            case_data["claimant_advocate_name"], case_data["claimant_advocate_mobile_number"],
+            case_id
+        ))
+        conn.commit()
+        cur.close()
+        conn.close()
+        return "Case updated successfully."
