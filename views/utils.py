@@ -59,26 +59,47 @@ def update_case_dates(case_id, upcoming_date, table_name="case_records"):
         conn.close()
         return "Case not found."
 
-def update_cases_and_previous_dates(self, edited_df, selected_date):
-    if edited_df is not None:
-        if "df_value" in st.session_state:
-            # Create an instance of CaseController to call its methods
-            controller = CaseController()
-            # Update cases in the database
-            update_status = ""
-            for _, row in edited_df.iterrows():
-                case_id = row['ID']  # Replace 'ID' with the actual column name for case IDs
-                new_upcoming_date = row['Upcoming Date']  # Replace 'Upcoming Date' with the actual column name for upcoming dates
-                update_status = controller.update_cases(case_id, new_upcoming_date)  # Use the instance to call the method
+# def update_cases_and_previous_dates(self, edited_df, selected_date):
+#     if edited_df is not None:
+#         if "df_value" in st.session_state:
+#             # Create an instance of CaseController to call its methods
+#             controller = CaseController()
+#             # Update cases in the database
+#             update_status = ""
+#             for _, row in edited_df.iterrows():
+#                 case_id = row['ID']  # Replace 'ID' with the actual column name for case IDs
+#                 new_upcoming_date = row['Upcoming Date']  # Replace 'Upcoming Date' with the actual column name for upcoming dates
+#                 update_status = controller.update_cases(case_id, new_upcoming_date)  # Use the instance to call the method
 
-            # Refresh the case data after update
-            updated_cases = controller.get_cases_by_date(selected_date)  # Fetch updated data
-            if updated_cases:
-                st.session_state.df_value = pd.DataFrame(updated_cases, columns=config_loader.load_config()['headers'])
-                st.write("Cases updated successfully.")
-            else:
-                st.write(f"No cases found for {selected_date}.")
-            st.write(update_status)
-        else:
-            st.write("No changes detected.")
+#             # Refresh the case data after update
+#             updated_cases = controller.get_cases_by_date(selected_date)  # Fetch updated data
+#             if updated_cases:
+#                 st.session_state.df_value = pd.DataFrame(updated_cases, columns=config_loader.load_config()['headers'])
+#                 st.write("Cases updated successfully.")
+#             else:
+#                 st.write(f"No cases found for {selected_date}.")
+#             st.write(update_status)
+#         else:
+#             st.write("No changes detected.")
+
+def update_cases_and_previous_dates(self, edited_df, original_data):
+    controller = CaseController()
+    updates_made = False
+    
+    for index, row in edited_df.iterrows():
+        case_id = row['ID']
+        new_upcoming_date = row['Upcoming Date']
+        
+        # Check if original_data is a DataFrame or a date
+        if isinstance(original_data, pd.DataFrame):
+            original_date = original_data.loc[index, 'Upcoming Date']
+        else:  # Assume it's a date
+            original_date = original_data
+        
+        if new_upcoming_date != original_date:
+            status = controller.update_cases(case_id, new_upcoming_date)
+            if status is not None:
+                updates_made = True
+    
+    return updates_made
 

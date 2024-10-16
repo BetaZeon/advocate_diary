@@ -133,7 +133,8 @@ class CaseView:
         search_query = st.text_input(f"Enter {search_criteria}", "")
 
         if st.button("Search"):
-            cases = self.controller.search_case(search_criteria, search_query)
+            with st.spinner("Searching for cases..."):
+                cases = self.controller.search_case(search_criteria, search_query)
             if not cases:
                 st.write("No cases found.")
             else:
@@ -143,53 +144,39 @@ class CaseView:
     def search_cases_by_company_name(self):
         st.header("Search Cases By Company Name")
         company_name = st.selectbox("Company Name",
-                                    config_loader.load_config()['company_names'], key="company_name")
-        cases = self.controller.search_case_by_company(company_name)
+                                    config_loader.load_config()['company_names'], key="company_name") 
+        with st.spinner("Fetching cases..."):
+            cases = self.controller.search_case_by_company(company_name)
         if not cases:
-           st.write("No cases found.")
+            st.write("No cases found.")
         else:
-           df_cases = pd.DataFrame(cases, columns=config_loader.load_config()['headers'])
-           st.dataframe(df_cases)
+            df_cases = pd.DataFrame(cases, columns=config_loader.load_config()['headers'])
+            st.dataframe(df_cases)
 
     def todays_case_list(self):
         st.header("Today's Case List")
+
+        # Initialize session state for messages
+        if 'show_message' not in st.session_state:
+            st.session_state.show_message = False
+        if 'message' not in st.session_state:
+            st.session_state.message = ""
+
+        # Display message if it exists in session state
+        if st.session_state.show_message:
+            st.info(st.session_state.message)
+            # Clear the message flag
+            st.session_state.show_message = False
+
         with st.form("todays_case_list"):
             submit_button = st.form_submit_button("Get Cases")
 
-            # Fetch data if the button is clicked or if it's the current date
             if submit_button:
-                cases = self.controller.get_todays_cases()
+                with st.spinner("Fetching today's cases..."):
+                    cases = self.controller.get_todays_cases()
                 if not cases:
                     st.write("No cases scheduled for today.")
-                else:
-                    df_cases = pd.DataFrame(cases, columns=config_loader.load_config()['headers'])
-                    st.session_state.df_value = df_cases
-        if "df_value" in st.session_state:
-            df_cases = st.session_state.df_value
-
-            column_config = {col: st.column_config.Column(disabled=True) for col in df_cases.columns if
-                             col not in ["Upcoming Date", "Stage"]}
-
-            edited_df = st.data_editor(
-                df_cases,
-                num_rows="fixed",
-                column_config=column_config,
-            )
-            if st.button("Update Cases"):
-                update_cases_and_previous_dates(self, edited_df, date.today())
-
-    def cases_by_date(self):
-        st.header("Cases by Date")
-        with st.form("cases_by_date_form"):
-            selected_date = st.date_input("Select Date", value=pd.Timestamp.now().date())
-            submit_button = st.form_submit_button("Get Cases")
-
-            # Fetch data if the button is clicked or if it's the current date
-            if submit_button or selected_date == pd.Timestamp.now().date():
-                cases = self.controller.get_cases_by_date(selected_date)
-                if not cases:
-                    st.write(f"No cases found for {selected_date}.")
-                    if "df_value" in st.session_state:
+                    if 'df_value' in st.session_state:
                         del st.session_state.df_value
                 else:
                     df_cases = pd.DataFrame(cases, columns=config_loader.load_config()['headers'])
@@ -199,24 +186,171 @@ class CaseView:
             df_cases = st.session_state.df_value
 
             column_config = {col: st.column_config.Column(disabled=True) for col in df_cases.columns if
-                             col not in ["Upcoming Date", "Stage"]}
+                            col not in ["Upcoming Date", "Stage"]}
 
             edited_df = st.data_editor(
                 df_cases,
                 num_rows="fixed",
                 column_config=column_config,
+                key="today_cases_editor"
             )
+
             if st.button("Update Cases"):
-                update_cases_and_previous_dates(self, edited_df, selected_date)
+                with st.spinner("Updating cases..."):
+                    updates_made = update_cases_and_previous_dates(self, edited_df, date.today())
+                
+                if updates_made:
+                    st.session_state.message = "Cases updated successfully!"
+                    # Refresh the data after update
+                    updated_cases = self.controller.get_todays_cases()
+                    if updated_cases:
+                        st.session_state.df_value = pd.DataFrame(updated_cases, columns=config_loader.load_config()['headers'])
+                else:
+                    st.session_state.message = "No changes were made."
+                
+                st.session_state.show_message = True
+                st.rerun()
+
+    def cases_by_date(self):
+        st.header("Cases by Date")
+        
+        # Initialize session state variables if they don't exist
+        if 'cases_df' not in st.session_state:
+            st.session_state.cases_df = None
+        if 'selected_date' not in st.session_state:
+            st.session_state.selected_date = pd.Timestamp.now().date()
+        if 'show_cases' not in st.session_state:
+            st.session_state.show_cases = False
+        
+        # Create a placeholder for the message
+        message_placeholder = st.empty()
+        
+        # Function to handle case updates
+        def update_cases():
+            with st.spinner("Updating cases..."):
+                updates_made = update_cases_and_previous_dates(self, st.session_state.edited_df, st.session_state.cases_df)
+            if updates_made:
+                st.session_state.update_message = "Cases updated successfully."
+                # Refresh the data after update
+                st.session_state.cases_df = pd.DataFrame(
+                    self.controller.get_cases_by_date(st.session_state.selected_date),
+                    columns=config_loader.load_config()['headers']
+                )
+            else:
+                st.session_state.update_message = "No changes were made."
+            st.session_state.show_message = True
+        
+        # Display message if it exists in session state
+        if st.session_state.get('show_message', False):
+            message_placeholder.info(st.session_state.update_message)
+            # Clear the message flag
+            st.session_state.show_message = False
+        
+        # Date input and Get Cases button
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            selected_date = st.date_input("Select Date", value=st.session_state.selected_date)
+        with col2:
+            get_cases = st.button("Get Cases")
+
+        if get_cases:
+            st.session_state.selected_date = selected_date
+            st.session_state.show_cases = True
+            cases = self.controller.get_cases_by_date(selected_date)
+            if not cases:
+                st.write(f"No cases found for {selected_date}.")
+                st.session_state.cases_df = None
+            else:
+                st.session_state.cases_df = pd.DataFrame(cases, columns=config_loader.load_config()['headers'])
+
+        if st.session_state.show_cases and st.session_state.cases_df is not None:
+            column_config = {col: st.column_config.Column(disabled=True) for col in st.session_state.cases_df.columns if
+                            col not in ["Upcoming Date", "Stage"]}
+
+            st.session_state.edited_df = st.data_editor(
+                st.session_state.cases_df,
+                num_rows="fixed",
+                column_config=column_config,
+                key="cases_editor"
+            )
+            
+            # Update Cases button
+            st.button("Update Cases", on_click=update_cases)
+    # def pending_cases(self):
+    #     st.header("Pending Cases")
+    #     cases = self.controller.get_pending_cases()
+    #     if not cases:
+    #         st.write("No pending cases found.")
+    #     else:
+    #         df_cases = pd.DataFrame(cases, columns=config_loader.load_config()['headers'])
+    #         st.dataframe(df_cases)
+
+    # def pending_cases(self):
+    #     st.header("Pending Cases")
+    #     with st.spinner("Fetching pending cases..."):
+    #         cases = self.controller.get_pending_cases()
+    #     if not cases:
+    #         st.write("No pending cases found.")
+    #     else:
+    #         df_cases = pd.DataFrame(cases, columns=config_loader.load_config()['headers'])
+    #         st.session_state.df_value = df_cases
+
+    #         column_config = {col: st.column_config.Column(disabled=True) for col in df_cases.columns if
+    #                         col not in ["Upcoming Date", "Stage"]}
+
+    #         edited_df = st.data_editor(
+    #             df_cases,
+    #             num_rows="fixed",
+    #             column_config=column_config,
+    #         )
+    #         if st.button("Update Cases"):
+    #             with st.spinner("Updating cases..."):
+    #                 update_cases_and_previous_dates(self, edited_df, date.today())
+    #             st.rerun()
 
     def pending_cases(self):
         st.header("Pending Cases")
-        cases = self.controller.get_pending_cases()
+        
+        # Create a placeholder for the message
+        message_placeholder = st.empty()
+        
+        # Function to handle case updates
+        def update_cases():
+            with st.spinner("Updating cases..."):
+                updates_made = update_cases_and_previous_dates(self, edited_df, df_cases)
+            if updates_made:
+                st.session_state.update_message = "Cases updated successfully."
+            else:
+                st.session_state.update_message = "No changes were made."
+            st.session_state.show_message = True
+        
+        # Display message if it exists in session state
+        if st.session_state.get('show_message', False):
+            message_placeholder.info(st.session_state.update_message)
+            # Clear the message flag
+            st.session_state.show_message = False
+        
+        # Fetch pending cases
+        with st.spinner("Fetching pending cases..."):
+            cases = self.controller.get_pending_cases()
+        
         if not cases:
             st.write("No pending cases found.")
         else:
             df_cases = pd.DataFrame(cases, columns=config_loader.load_config()['headers'])
-            st.dataframe(df_cases)
+            
+            column_config = {col: st.column_config.Column(disabled=True) for col in df_cases.columns if
+                            col not in ["Upcoming Date", "Stage"]}
+
+            edited_df = st.data_editor(
+                df_cases,
+                num_rows="fixed",
+                column_config=column_config,
+                key="pending_cases_editor"
+            )
+            
+            # Use on_click parameter for the button
+            st.button("Update Cases", on_click=update_cases)
     
     def update_config(self):
         st.header("Update Config")

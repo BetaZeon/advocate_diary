@@ -1,6 +1,6 @@
 import streamlit as st
 from views.case_view import CaseView
-
+from views.auth_view import AuthView
 
 def set_custom_style():
     hide_st_style = """
@@ -101,7 +101,7 @@ def set_custom_style():
                 background-color: #1E3A8A;
                 color: white;
                 font-weight: 500;
-                padding: 0.5rem 1rem;
+                padding: 0 .5rem 1rem;
                 border-radius: 0.375rem;
                 border: none;
                 transition: background-color 0.3s ease;
@@ -119,48 +119,78 @@ def main():
 
     st.markdown('<h1 class="main-title">⚖️ Case Management System</h1>', unsafe_allow_html=True)
 
-    case_view = CaseView()
+    # Initialize session state variables
+    if "user" not in st.session_state:
+        st.session_state.user = None
+    if "page" not in st.session_state:
+        st.session_state.page = "home"
 
-    # Sidebar navigation
-    with st.sidebar:
-        nav_options = {
-            "🏠 Home": "home",
-            "➕ Add New Case": "add_case",
-            "🔍 Search Case": "search_case",
-            "📅 Today's Case List": "todays_case_list",
-            "📆 Cases by Date": "cases_by_date",
-            "⏳ Pending Cases": "pending_cases",
-            "🏢 Cases By Company Name": "cases_by_company_name",
-            "📝 Update Config": "update_config",
-            "✍️ Update Case": "update_case"
-        }
-        for label, page in nav_options.items():
-            if st.button(label):
-                st.session_state.page = page
+    if st.session_state.user is None:
+        auth_view = AuthView()
+        with st.sidebar:
+            nav_options = {
+                "Login": "login",
+                "Register": "register"
+            }
+            for label, page in nav_options.items():
+                if st.button(label, key=f"auth_{page}"):
+                    st.session_state.page = page
 
-    # Main content area
-    with st.container():
-        if "page" not in st.session_state:
+        with st.container():
+            if st.session_state.page == "login":
+                auth_view.login()
+            elif st.session_state.page == "register":
+                auth_view.register()
+    else:
+        case_view = CaseView()
+        case_view = CaseView()
+
+        # Sidebar navigation
+        with st.sidebar:
+            nav_options = {
+                "🏠 Home": "home",
+                "➕ Add New Case": "add_case",
+                "🔍 Search Case": "search_case",
+                "📅 Today's Case List": "todays_case_list",
+                "📆 Cases by Date": "cases_by_date",
+                "⏳ Pending Cases": "pending_cases",
+                "🏢 Cases By Company Name": "cases_by_company_name",
+                "📝 Update Config": "update_config",
+                "✍️ Update Case": "update_case"
+            }
+            for label, page in nav_options.items():
+                if st.button(label):
+                    st.session_state.page = page
+
+        # Main content area
+        with st.container():
+            if "page" not in st.session_state:
+                st.session_state.page = "home"
+
+            content = st.container()
+            with content:
+                if st.session_state.page == "home":
+                    st.write("## Welcome to the Case Management System")
+                    st.write("Select an option from the sidebar to get started.")
+                elif st.session_state.page == "add_case":
+                    case_view.add_case()
+                elif st.session_state.page == "search_case":
+                    case_view.search_case()
+                elif st.session_state.page == "todays_case_list":
+                    case_view.todays_case_list()
+                elif st.session_state.page == "cases_by_date":
+                    case_view.cases_by_date()
+                elif st.session_state.page == "pending_cases":
+                    case_view.pending_cases()
+                elif st.session_state.page == "cases_by_company_name":
+                    case_view.search_cases_by_company_name()
+                elif st.session_state.page == "update_config":
+                    case_view.update_config()
+                elif st.session_state.page == "update_case":
+                    case_view.update_case()
+       # Add a logout button
+    if st.session_state.user:
+        if st.sidebar.button("Logout", key="logout_button"):
+            st.session_state.user = None
             st.session_state.page = "home"
-
-        content = st.container()
-        with content:
-            if st.session_state.page == "home":
-                st.write("## Welcome to the Case Management System")
-                st.write("Select an option from the sidebar to get started.")
-            elif st.session_state.page == "add_case":
-                case_view.add_case()
-            elif st.session_state.page == "search_case":
-                case_view.search_case()
-            elif st.session_state.page == "todays_case_list":
-                case_view.todays_case_list()
-            elif st.session_state.page == "cases_by_date":
-                case_view.cases_by_date()
-            elif st.session_state.page == "pending_cases":
-                case_view.pending_cases()
-            elif st.session_state.page == "cases_by_company_name":
-                case_view.search_cases_by_company_name()
-            elif st.session_state.page == "update_config":
-                case_view.update_config()
-            elif st.session_state.page == "update_case":
-                case_view.update_case()
+            st.rerun()
