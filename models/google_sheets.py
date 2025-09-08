@@ -18,31 +18,34 @@ class GoogleSheetsService:
     def _setup_connection(self):
         """Setup Google Sheets connection using service account credentials"""
         try:
-            # Try to get credentials from Streamlit secrets first (for production)
+            # Always try to get credentials from Streamlit secrets first
             if hasattr(st, 'secrets') and 'google_sheets' in st.secrets:
                 creds_info = st.secrets['google_sheets']
                 spreadsheet_id = st.secrets['google_sheets']['spreadsheet_id']
+                st.info("🔧 Using credentials from Streamlit secrets")
+                st.info(f"📊 Spreadsheet ID: {spreadsheet_id}")
             else:
-                # Fallback to config.json for local development
-                with open('config.json', 'r') as f:
-                    config = json.load(f)
-                
-                if 'google_sheets' not in config:
-                    st.warning("⚠️ Google Sheets configuration not found. Using mock data for demonstration.")
-                    self._use_mock_data()
-                    return
-                
-                creds_info = config['google_sheets']
-                spreadsheet_id = config['google_sheets'].get('spreadsheet_id', 'demo_spreadsheet')
+                st.warning("⚠️ No Streamlit secrets found. Using mock data for demonstration.")
+                st.info("💡 **To fix this**: Create a `.streamlit/secrets.toml` file with your Google Sheets credentials")
+                self._use_mock_data()
+                return
             
-            if spreadsheet_id == 'demo_spreadsheet':
+            if spreadsheet_id == 'demo_spreadsheet' or not spreadsheet_id:
                 st.warning("⚠️ Spreadsheet ID not configured. Using mock data for demonstration.")
                 self._use_mock_data()
                 return
             
             # Get credentials
+            # Create a copy of creds_info since st.secrets is read-only
+            creds_info_copy = dict(creds_info)
+            
+            # Ensure private key is properly formatted
+            if 'private_key' in creds_info_copy:
+                # Replace literal \n with actual newlines
+                creds_info_copy['private_key'] = creds_info_copy['private_key'].replace('\\n', '\n')
+            
             credentials = Credentials.from_service_account_info(
-                creds_info,
+                creds_info_copy,
                 scopes=['https://www.googleapis.com/auth/spreadsheets', 
                        'https://www.googleapis.com/auth/drive']
             )
@@ -56,7 +59,18 @@ class GoogleSheetsService:
             st.success("✅ Successfully connected to Google Sheets!")
             
         except Exception as e:
-            st.warning(f"⚠️ Could not connect to Google Sheets: {e}. Using mock data for demonstration.")
+            error_msg = str(e)
+            if "Incorrect padding" in error_msg:
+                st.error("🔑 **Google Sheets Authentication Error**: Incorrect private key format. Please check your credentials.")
+                st.info("💡 **Tip**: Make sure the private key in your secrets file has proper newline characters (\\n)")
+            elif "invalid_grant" in error_msg:
+                st.error("🔑 **Google Sheets Authentication Error**: Invalid credentials. Please check your service account key.")
+            elif "access_denied" in error_msg:
+                st.error("🔑 **Google Sheets Authentication Error**: Access denied. Please check if the service account has access to the spreadsheet.")
+            else:
+                st.warning(f"⚠️ Could not connect to Google Sheets: {e}")
+            
+            st.info("🔄 Using mock data for demonstration. Check your credentials to connect to Google Sheets.")
             self._use_mock_data()
     
     def _use_mock_data(self):
