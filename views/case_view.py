@@ -90,26 +90,26 @@ class CaseView:
 
         if 'case_to_update' in st.session_state:
             case = st.session_state.case_to_update
-            case_id = case[0]  # Assuming the ID is the first column
+            case_id = case.get('ID', '')  # Get ID from dictionary
 
             col1, col2 = st.columns(2)
 
             with col1:
-                case_number = st.text_input("Case Number", value=case[1], max_chars=10)
-                case_title = st.text_input("Case Title", value=case[2], max_chars=255)
-                case_type = st.selectbox("Case Type", config_loader.load_config()['case_types'], index=config_loader.load_config()['case_types'].index(case[3]) if case[3] in config_loader.load_config()['case_types'] else 0)
-                location = st.selectbox("Location", config_loader.load_config()['locations'], index=config_loader.load_config()['locations'].index(case[4]) if case[4] in config_loader.load_config()['locations'] else 0)
-                company_name = st.selectbox("Company Name", config_loader.load_config()['company_names'], index=config_loader.load_config()['company_names'].index(case[5]) if case[5] in config_loader.load_config()['company_names'] else 0)
-                upcoming_date = st.date_input("Upcoming Date", value=case[6] if case[6] else None)
-                stage = st.text_input("Stage", value=case[8], max_chars=50)                
+                case_number = st.text_input("Case Number", value=case.get('Case Number', ''), max_chars=10)
+                case_title = st.text_input("Case Title", value=case.get('Case Title', ''), max_chars=255)
+                case_type = st.selectbox("Case Type", config_loader.load_config()['case_types'], index=config_loader.load_config()['case_types'].index(case.get('Case Type', '')) if case.get('Case Type', '') in config_loader.load_config()['case_types'] else 0)
+                location = st.selectbox("Location", config_loader.load_config()['locations'], index=config_loader.load_config()['locations'].index(case.get('Location', '')) if case.get('Location', '') in config_loader.load_config()['locations'] else 0)
+                company_name = st.selectbox("Company Name", config_loader.load_config()['company_names'], index=config_loader.load_config()['company_names'].index(case.get('Company Name', '')) if case.get('Company Name', '') in config_loader.load_config()['company_names'] else 0)
+                upcoming_date = st.date_input("Upcoming Date", value=pd.to_datetime(case.get('Upcoming Date', '')).date() if case.get('Upcoming Date', '') else None)
+                stage = st.text_input("Stage", value=case.get('Stage', ''), max_chars=50)                
                 # Handle the case where status might be empty or not in the list
                 statuses = config_loader.load_config()['statuses']
-                status_index = statuses.index(case[10]) if case[10] in statuses else 0
+                status_index = statuses.index(case.get('Status', '')) if case.get('Status', '') in statuses else 0
                 status = st.selectbox("Status", statuses, index=status_index)
                 
-                claimant_advocate_name = st.text_input("Claimant Advocate Name", value=case[11], max_chars=100)
-                claimant_advocate_mobile_number = st.text_input("Claimant Advocate Mobile Number", value=case[12], max_chars=15)
-                remarks = st.text_area("Remarks", value=case[9])
+                claimant_advocate_name = st.text_input("Claimant Advocate Name", value=case.get('Claimant Advocate Name', ''), max_chars=100)
+                claimant_advocate_mobile_number = st.text_input("Claimant Advocate Mobile Number", value=case.get('Claimant Advocate Mobile Number', ''), max_chars=15)
+                remarks = st.text_area("Remarks", value=case.get('Remarks', ''))
             if st.button("Update"):
                 with st.spinner("Updating the case..."):
                     case_data = {
@@ -141,7 +141,27 @@ class CaseView:
             if not cases:
                 st.write("No cases found.")
             else:
-                df_cases = pd.DataFrame(cases, columns=config_loader.load_config()['headers'])
+                # Convert Google Sheets records to DataFrame format
+                formatted_cases = []
+                for case in cases:
+                    formatted_case = [
+                        case.get('ID', ''),
+                        case.get('Case Number', ''),
+                        case.get('Case Title', ''),
+                        case.get('Case Type', ''),
+                        case.get('Location', ''),
+                        case.get('Company Name', ''),
+                        case.get('Upcoming Date', ''),
+                        case.get('Previous Dates', ''),
+                        case.get('Stage', ''),
+                        case.get('Remarks', ''),
+                        case.get('Status', ''),
+                        case.get('Claimant Advocate Name', ''),
+                        case.get('Claimant Advocate Mobile Number', '')
+                    ]
+                    formatted_cases.append(formatted_case)
+                
+                df_cases = pd.DataFrame(formatted_cases, columns=config_loader.load_config()['headers'])
                 st.dataframe(df_cases)
 
     def search_cases_by_company_name(self):
@@ -152,7 +172,27 @@ class CaseView:
         if not cases:
            st.write("No cases found.")
         else:
-           df_cases = pd.DataFrame(cases, columns=config_loader.load_config()['headers'])
+           # Convert Google Sheets records to DataFrame format
+           formatted_cases = []
+           for case in cases:
+               formatted_case = [
+                        case.get('ID', ''),
+                        case.get('Case Number', ''),
+                        case.get('Case Title', ''),
+                        case.get('Case Type', ''),
+                        case.get('Location', ''),
+                        case.get('Company Name', ''),
+                        case.get('Upcoming Date', ''),
+                        case.get('Previous Dates', ''),
+                        case.get('Stage', ''),
+                        case.get('Remarks', ''),
+                        case.get('Status', ''),
+                        case.get('Claimant Advocate Name', ''),
+                        case.get('Claimant Advocate Mobile Number', '')
+               ]
+               formatted_cases.append(formatted_case)
+           
+           df_cases = pd.DataFrame(formatted_cases, columns=config_loader.load_config()['headers'])
            st.dataframe(df_cases)
 
     def todays_case_list(self):
@@ -166,7 +206,27 @@ class CaseView:
                 if not cases:
                     st.write("No cases scheduled for today.")
                 else:
-                    df_cases = pd.DataFrame(cases, columns=config_loader.load_config()['headers'])
+                    # Convert Google Sheets records to DataFrame format
+                    formatted_cases = []
+                    for case in cases:
+                        formatted_case = [
+                        case.get('ID', ''),
+                        case.get('Case Number', ''),
+                        case.get('Case Title', ''),
+                        case.get('Case Type', ''),
+                        case.get('Location', ''),
+                        case.get('Company Name', ''),
+                        case.get('Upcoming Date', ''),
+                        case.get('Previous Dates', ''),
+                        case.get('Stage', ''),
+                        case.get('Remarks', ''),
+                        case.get('Status', ''),
+                        case.get('Claimant Advocate Name', ''),
+                        case.get('Claimant Advocate Mobile Number', '')
+                        ]
+                        formatted_cases.append(formatted_case)
+                    
+                    df_cases = pd.DataFrame(formatted_cases, columns=config_loader.load_config()['headers'])
                     st.session_state.df_value = df_cases
         if "df_value" in st.session_state:
             df_cases = st.session_state.df_value
@@ -196,7 +256,27 @@ class CaseView:
                     if "df_value" in st.session_state:
                         del st.session_state.df_value
                 else:
-                    df_cases = pd.DataFrame(cases, columns=config_loader.load_config()['headers'])
+                    # Convert Google Sheets records to DataFrame format
+                    formatted_cases = []
+                    for case in cases:
+                        formatted_case = [
+                        case.get('ID', ''),
+                        case.get('Case Number', ''),
+                        case.get('Case Title', ''),
+                        case.get('Case Type', ''),
+                        case.get('Location', ''),
+                        case.get('Company Name', ''),
+                        case.get('Upcoming Date', ''),
+                        case.get('Previous Dates', ''),
+                        case.get('Stage', ''),
+                        case.get('Remarks', ''),
+                        case.get('Status', ''),
+                        case.get('Claimant Advocate Name', ''),
+                        case.get('Claimant Advocate Mobile Number', '')
+                        ]
+                        formatted_cases.append(formatted_case)
+                    
+                    df_cases = pd.DataFrame(formatted_cases, columns=config_loader.load_config()['headers'])
                     st.session_state.df_value = df_cases
 
         if "df_value" in st.session_state:
@@ -219,5 +299,25 @@ class CaseView:
         if not cases:
             st.write("No pending cases found.")
         else:
-            df_cases = pd.DataFrame(cases, columns=config_loader.load_config()['headers'])
+            # Convert Google Sheets records to DataFrame format
+            formatted_cases = []
+            for case in cases:
+                formatted_case = [
+                        case.get('ID', ''),
+                        case.get('Case Number', ''),
+                        case.get('Case Title', ''),
+                        case.get('Case Type', ''),
+                        case.get('Location', ''),
+                        case.get('Company Name', ''),
+                        case.get('Upcoming Date', ''),
+                        case.get('Previous Dates', ''),
+                        case.get('Stage', ''),
+                        case.get('Remarks', ''),
+                        case.get('Status', ''),
+                        case.get('Claimant Advocate Name', ''),
+                        case.get('Claimant Advocate Mobile Number', '')
+                ]
+                formatted_cases.append(formatted_case)
+            
+            df_cases = pd.DataFrame(formatted_cases, columns=config_loader.load_config()['headers'])
             st.dataframe(df_cases)

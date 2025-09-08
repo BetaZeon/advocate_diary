@@ -64,7 +64,7 @@ def update_cases_and_previous_dates(self, edited_df, selected_date):
         if "df_value" in st.session_state:
             # Create an instance of CaseController to call its methods
             controller = CaseController()
-            # Update cases in the database
+            # Update cases in the Google Sheets
             update_status = ""
             for _, row in edited_df.iterrows():
                 case_id = row['ID']  # Replace 'ID' with the actual column name for case IDs
@@ -74,7 +74,27 @@ def update_cases_and_previous_dates(self, edited_df, selected_date):
             # Refresh the case data after update
             updated_cases = controller.get_cases_by_date(selected_date)  # Fetch updated data
             if updated_cases:
-                st.session_state.df_value = pd.DataFrame(updated_cases, columns=config_loader.load_config()['headers'])
+                # Convert Google Sheets records to the expected format
+                formatted_cases = []
+                for case in updated_cases:
+                    formatted_case = [
+                        case.get('ID', ''),
+                        case.get('Case Number', ''),
+                        case.get('Case Title', ''),
+                        case.get('Case Type', ''),
+                        case.get('Location', ''),
+                        case.get('Company Name', ''),
+                        case.get('Upcoming Date', ''),
+                        case.get('Previous Dates', ''),
+                        case.get('Stage', ''),
+                        case.get('Remarks', ''),
+                        case.get('Status', ''),
+                        case.get('Claimant Advocate Name', ''),
+                        case.get('Claimant Advocate Mobile Number', '')
+                    ]
+                    formatted_cases.append(formatted_case)
+                
+                st.session_state.df_value = pd.DataFrame(formatted_cases, columns=config_loader.load_config()['headers'])
                 st.write("Cases updated successfully.")
             else:
                 st.write(f"No cases found for {selected_date}.")

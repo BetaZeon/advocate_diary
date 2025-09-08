@@ -12,7 +12,6 @@ ENV/
 venv/
 ENV.bak/
 venv.bak/
-.streamlit/
 
 # Streamlit specific
 .streamlit/secrets.toml
@@ -51,3 +50,10 @@ venv.bak/
 
 # MacOS files
 .DS_Store
+
+# Google Sheets credentials (keep config.json for local development)
+# *.json
+!config.json
+
+# Deployment files
+deploy.sh

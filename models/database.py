@@ -1,12 +1,5 @@
-import psycopg2
-import streamlit as st
+from .google_sheets import GoogleSheetsService
 
 def get_connection():
-    config = {
-        "host": st.secrets["database"]["host"],
-        "port": st.secrets["database"]["port"],
-        "database": st.secrets["database"]["database"],
-        "user": st.secrets["database"]["user"],
-        "password": st.secrets["database"]["password"]
-    }
-    return psycopg2.connect(**config)
+    """Get Google Sheets service connection"""
+    return GoogleSheetsService()
