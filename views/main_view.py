@@ -1,5 +1,9 @@
 import streamlit as st
 from views.case_view import CaseView
+import os
+from pathlib import Path
+from datetime import datetime
+from utils.logger import get_logs_as_text, clear_memory_logs, clear_all_logs, get_sheets_logs, is_production
 
 
 def set_custom_style():
@@ -113,6 +117,141 @@ def set_custom_style():
     """, unsafe_allow_html=True)
 
 
+def view_logs():
+    """Display application logs"""
+    st.write("## 📋 Application Logs")
+    
+    # Check if running in production
+    production_mode = is_production()
+    
+    if production_mode:
+        st.info("🌐 **Production Mode**: Logs are stored in Google Sheets and memory.")
+        st.success("✅ **Persistent Logging**: Logs are saved to Google Sheets worksheet for permanent storage.")
+    else:
+        st.info("💻 **Development Mode**: Logs are stored in local files.")
+    
+    # Log controls
+    col1, col2, col3 = st.columns([2, 1, 1])
+    
+    with col1:
+        if production_mode:
+            st.write("**Log source:** Google Sheets worksheet + In-memory storage")
+        else:
+            log_file = Path("logs/advocate_diary.log")
+            st.write(f"**Log file:** `{log_file.absolute()}`")
+    
+    with col2:
+        if st.button("🔄 Refresh Logs"):
+            st.rerun()
+    
+    with col3:
+        if st.button("🗑️ Clear Logs"):
+            try:
+                if production_mode:
+                    clear_all_logs()
+                    st.success("All logs cleared successfully! (Google Sheets + Memory)")
+                else:
+                    log_file = Path("logs/advocate_diary.log")
+                    if log_file.exists():
+                        log_file.unlink()
+                        st.success("Log file cleared successfully!")
+                    else:
+                        st.info("No log file to clear.")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Error clearing logs: {e}")
+    
+    # Display logs
+    try:
+        # Get log content based on environment
+        log_content = get_logs_as_text()
+        
+        if not log_content.strip():
+            if production_mode:
+                st.info("No logs in memory yet. Start using the application to see logs here.")
+            else:
+                st.info("Log file is empty. Start using the application to see logs here.")
+            return
+        
+        # Show last N lines
+        lines = log_content.strip().split('\n')
+        num_lines = len(lines)
+        
+        st.write(f"**Total log entries:** {num_lines}")
+        
+        # Option to show last N lines
+        show_lines = st.slider("Show last N lines:", min_value=10, max_value=min(1000, num_lines), value=min(100, num_lines))
+        
+        if show_lines < num_lines:
+            display_lines = lines[-show_lines:]
+            st.info(f"Showing last {show_lines} lines out of {num_lines} total lines.")
+        else:
+            display_lines = lines
+        
+        # Display logs in a text area
+        log_text = '\n'.join(display_lines)
+        st.text_area("Log Content:", value=log_text, height=400, disabled=True)
+        
+        # In production, also show structured Google Sheets logs
+        if production_mode:
+            st.write("---")
+            st.write("### 📊 Structured Logs from Google Sheets")
+            
+            try:
+                sheets_logs = get_sheets_logs(limit=50)  # Get last 50 logs
+                if sheets_logs:
+                    # Convert to DataFrame for better display
+                    import pandas as pd
+                    df = pd.DataFrame(sheets_logs)
+                    
+                    # Display as a table
+                    st.dataframe(
+                        df,
+                        use_container_width=True,
+                        height=300,
+                        column_config={
+                            "Timestamp": st.column_config.DatetimeColumn(
+                                "Timestamp",
+                                format="YYYY-MM-DD HH:mm:ss"
+                            ),
+                            "Level": st.column_config.TextColumn(
+                                "Level",
+                                width="small"
+                            ),
+                            "Message": st.column_config.TextColumn(
+                                "Message",
+                                width="large"
+                            ),
+                            "Function": st.column_config.TextColumn(
+                                "Function",
+                                width="medium"
+                            ),
+                            "Context": st.column_config.TextColumn(
+                                "Context",
+                                width="large"
+                            )
+                        }
+                    )
+                    
+                    st.write(f"**Showing last {len(sheets_logs)} structured log entries from Google Sheets**")
+                else:
+                    st.info("No structured logs found in Google Sheets yet.")
+            except Exception as e:
+                st.warning(f"Could not load structured logs: {e}")
+        
+        # Download button
+        if log_content.strip():
+            st.download_button(
+                label="📥 Download Logs",
+                data=log_content,
+                file_name=f"advocate_diary_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log",
+                mime="text/plain"
+            )
+        
+    except Exception as e:
+        st.error(f"Error reading logs: {e}")
+
+
 def main():
     st.set_page_config(page_title="⚖️ Case Management System", layout="wide")
     set_custom_style()
@@ -131,7 +270,8 @@ def main():
             "📆 Cases by Date": "cases_by_date",
             "⏳ Pending Cases": "pending_cases",
             "🏢 Cases By Company Name": "cases_by_company_name",
-            "✍️ Update Case": "update_case"
+            "✍️ Update Case": "update_case",
+            "📋 View Logs": "view_logs"
         }
         for label, page in nav_options.items():
             if st.button(label):
@@ -161,3 +301,5 @@ def main():
                 case_view.search_cases_by_company_name()
             elif st.session_state.page == "update_case":
                 case_view.update_case()
+            elif st.session_state.page == "view_logs":
+                view_logs()

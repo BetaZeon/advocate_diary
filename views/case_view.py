@@ -58,17 +58,17 @@ class CaseView:
                         st.error("Case number already exists for the selected location")
                     else:
                         case_data = {
-                            "case_number": case_number,
-                            "case_title": case_title,
-                            "case_type": case_type,
-                            "location": location,
-                            "company_name": company_name,
-                            "upcoming_date": upcoming_date,
-                            "stage": stage,
-                            "remarks": remarks,
-                            "status": status,
-                            "claimant_advocate_name": claimant_advocate_name,
-                            "claimant_advocate_mobile_number": claimant_advocate_mobile_number
+                            "Case Number": case_number,
+                            "Case Title": case_title,
+                            "Case Type": case_type,
+                            "Location": location,
+                            "Company Name": company_name,
+                            "Upcoming Date": upcoming_date,
+                            "Stage": stage,
+                            "Remarks": remarks,
+                            "Status": status,
+                            "Claimant Advocate Name": claimant_advocate_name,
+                            "Claimant Advocate Mobile Number": claimant_advocate_mobile_number
                         }
                         try:
                             Case.add_case(case_data)
