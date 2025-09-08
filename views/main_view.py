@@ -154,6 +154,27 @@ def view_logs():
                         st.success("✅ Test log entry successful!")
                     else:
                         st.error("❌ Test log entry failed!")
+                
+                # Concurrency test
+                st.write("**Concurrency Test:**")
+                if st.button("🚀 Run Concurrency Test"):
+                    with st.spinner("Running concurrency test..."):
+                        try:
+                            from utils.concurrency_test import simulate_concurrent_case_addition
+                            results = simulate_concurrent_case_addition(num_users=3, cases_per_user=2)
+                            
+                            successful = sum(1 for r in results if r.get('success', False))
+                            total = len(results)
+                            
+                            st.success(f"✅ Concurrency test completed: {successful}/{total} operations successful")
+                            
+                            # Show results
+                            import pandas as pd
+                            df = pd.DataFrame(results)
+                            st.dataframe(df, use_container_width=True)
+                            
+                        except Exception as e:
+                            st.error(f"❌ Concurrency test failed: {e}")
             else:
                 st.error("❌ Google Sheets logging is not available")
                 st.write("**Possible issues:**")

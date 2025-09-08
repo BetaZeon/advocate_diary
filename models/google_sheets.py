@@ -4,6 +4,8 @@ import streamlit as st
 import pandas as pd
 from datetime import date
 import json
+import time
+import threading
 from utils.logger import (
     log_google_sheets_operation, log_error_with_context, 
     log_function_call, log_function_result, info, warning, error
@@ -17,6 +19,7 @@ class GoogleSheetsService:
         self.worksheet = None
         self.is_mock = False
         self.mock_data = []
+        self._lock = threading.Lock()  # Thread lock for concurrency control
         self._setup_connection()
     
     def _setup_connection(self):
@@ -202,33 +205,90 @@ class GoogleSheetsService:
             st.error(f"Error updating record: {e}")
             return False
     
-    def add_case(self, case_data):
-        """Add a new case"""
-        log_function_call("add_case", kwargs=case_data)
+    def _generate_unique_id(self):
+        """Generate a unique ID in a thread-safe manner"""
+        with self._lock:
+            try:
+                if self.is_mock:
+                    # For mock data, use simple increment
+                    max_id = max([r.get('ID', 0) for r in self.mock_data], default=0)
+                    return max_id + 1
+                
+                # For Google Sheets, use atomic operation
+                # Get the last row to find the highest ID
+                all_values = self.worksheet.get_all_values()
+                if len(all_values) <= 1:  # Only headers or empty
+                    return 1
+                
+                # Find max ID from all rows (skip header)
+                max_id = 0
+                for row in all_values[1:]:  # Skip header row
+                    if row and row[0]:  # Check if ID column has value
+                        try:
+                            current_id = int(row[0])
+                            max_id = max(max_id, current_id)
+                        except (ValueError, IndexError):
+                            continue
+                
+                return max_id + 1
+                
+            except Exception as e:
+                log_error_with_context(e, "Error generating unique ID")
+                # Fallback: use timestamp-based ID
+                return int(time.time() * 1000) % 1000000  # Use last 6 digits of timestamp
+
+    def _record_exists(self, record_id):
+        """Check if a record with given ID exists"""
         try:
-            # Generate ID for new case
-            all_records = self._get_all_records()
-            new_id = max([r.get('ID', 0) for r in all_records], default=0) + 1
-            case_data['ID'] = new_id
+            if self.is_mock:
+                return any(r.get('ID') == record_id for r in self.mock_data)
             
-            # Log case addition details
-            case_number = case_data.get('Case Number', 'N/A')
-            location = case_data.get('Location', 'N/A')
-            log_case_operation("add_attempt", case_number, location)
-            info(f"Adding case with ID: {new_id}, Case Number: {case_number}, Location: {location}")
-            
-            result = self._add_record(case_data)
-            if result:
-                log_case_operation("add_success", case_number, location)
-                st.success("✅ Case added successfully!")
-            else:
-                log_case_operation("add_failed", case_number, location)
-                st.error("❌ Failed to add case")
-            return result
-        except Exception as e:
-            log_error_with_context(e, f"Error adding case: {case_data}")
-            st.error(f"❌ Error adding case: {e}")
+            # For Google Sheets, check if ID exists
+            all_values = self.worksheet.get_all_values()
+            for row in all_values[1:]:  # Skip header
+                if row and row[0] and str(row[0]) == str(record_id):
+                    return True
             return False
+        except Exception as e:
+            log_error_with_context(e, f"Error checking if record {record_id} exists")
+            return False
+
+    def add_case(self, case_data):
+        """Add a new case with concurrency safety"""
+        log_function_call("add_case", kwargs=case_data)
+        
+        # Use thread lock to ensure atomic operation
+        with self._lock:
+            try:
+                # Generate unique ID
+                new_id = self._generate_unique_id()
+                case_data['ID'] = new_id
+                
+                # Log case addition details
+                case_number = case_data.get('Case Number', 'N/A')
+                location = case_data.get('Location', 'N/A')
+                log_case_operation("add_attempt", case_number, location)
+                info(f"Adding case with ID: {new_id}, Case Number: {case_number}, Location: {location}")
+                
+                # Check for duplicate case number in the same location
+                if self.case_number_exists(case_number, location):
+                    log_case_operation("add_duplicate", case_number, location)
+                    st.error(f"❌ Case number {case_number} already exists for location {location}")
+                    return False
+                
+                result = self._add_record(case_data)
+                if result:
+                    log_case_operation("add_success", case_number, location)
+                    st.success("✅ Case added successfully!")
+                else:
+                    log_case_operation("add_failed", case_number, location)
+                    st.error("❌ Failed to add case")
+                return result
+                
+            except Exception as e:
+                log_error_with_context(e, f"Error adding case: {case_data}")
+                st.error(f"❌ Error adding case: {e}")
+                return False
     
     def case_number_exists(self, case_number, location):
         """Check if case number exists for the given location"""
@@ -315,6 +375,7 @@ class GoogleSheetsService:
         return "Case not found."
     
     def update_case(self, case_id, case_data):
-        """Update case with new data"""
-        case_data['ID'] = case_id
-        return self._update_record(case_id, case_data)
+        """Update case with new data (thread-safe)"""
+        with self._lock:
+            case_data['ID'] = case_id
+            return self._update_record(case_id, case_data)
