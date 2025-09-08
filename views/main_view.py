@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from datetime import datetime
 from utils.logger import get_logs_as_text, clear_memory_logs, clear_all_logs, get_sheets_logs, is_production
+from utils.sheets_logger import sheets_logger
 
 
 def set_custom_style():
@@ -129,6 +130,37 @@ def view_logs():
         st.success("✅ **Persistent Logging**: Logs are saved to Google Sheets worksheet for permanent storage.")
     else:
         st.info("💻 **Development Mode**: Logs are stored in local files.")
+    
+    # Debug section for production
+    if production_mode:
+        with st.expander("🔧 Debug Information", expanded=False):
+            st.write("**Google Sheets Logger Status:**")
+            st.write(f"- Available: {sheets_logger.is_available}")
+            st.write(f"- Worksheet Name: {sheets_logger.worksheet_name}")
+            
+            if sheets_logger.is_available:
+                # Test connection
+                success, message = sheets_logger.test_connection()
+                st.write(f"- Connection Test: {'✅' if success else '❌'} {message}")
+                
+                # Worksheet info
+                info = sheets_logger.get_worksheet_info()
+                st.write(f"- Worksheet Info: {info}")
+                
+                # Test log entry
+                if st.button("🧪 Test Log Entry"):
+                    test_result = sheets_logger.log("INFO", "Test log entry from debug panel", "debug_test", "Testing Google Sheets logging")
+                    if test_result:
+                        st.success("✅ Test log entry successful!")
+                    else:
+                        st.error("❌ Test log entry failed!")
+            else:
+                st.error("❌ Google Sheets logging is not available")
+                st.write("**Possible issues:**")
+                st.write("- No Google Sheets credentials in Streamlit secrets")
+                st.write("- Authentication failed")
+                st.write("- Spreadsheet access denied")
+                st.write("- Network connectivity issues")
     
     # Log controls
     col1, col2, col3 = st.columns([2, 1, 1])
