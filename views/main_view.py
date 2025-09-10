@@ -610,6 +610,336 @@ def render_upcoming(df: pd.DataFrame):
             st.dataframe(dff[["Case Number","Case Title","Upcoming Date","Stage"]], use_container_width=True, hide_index=True)
 
 
+def update_company_cases(edited_df, original_df):
+    """Update company cases with previous date handling"""
+    from models.database import get_connection
+    sheets_service = get_connection()
+    
+    try:
+        # Find changes in the edited dataframe
+        for idx, row in edited_df.iterrows():
+            original_row = original_df.iloc[idx]
+            
+            # Check if upcoming date changed
+            if str(row["Upcoming Date"]) != str(original_row["Upcoming Date"]):
+                # Get the case ID
+                case_id = row["ID"]
+                
+                # Prepare the updated case data
+                updated_case_data = row.to_dict()
+                
+                # Handle previous dates - move old upcoming date to previous dates
+                old_upcoming_date = str(original_row["Upcoming Date"])
+                previous_dates = str(original_row["Previous Dates"]) if original_row["Previous Dates"] else ""
+                
+                # Add old upcoming date to previous dates if not already there
+                if previous_dates:
+                    previous_dates_list = previous_dates.split("|")
+                else:
+                    previous_dates_list = []
+                
+                if old_upcoming_date not in previous_dates_list:
+                    previous_dates_list.append(old_upcoming_date)
+                
+                updated_case_data["Previous Dates"] = "|".join(previous_dates_list)
+                updated_case_data["Upcoming Date"] = str(row["Upcoming Date"])
+                
+                # Update in backend
+                if sheets_service.update_case(case_id, updated_case_data):
+                    st.success(f"✅ Updated case {row['Case Number']} - Previous date moved to history")
+                else:
+                    st.error(f"❌ Failed to update case {row['Case Number']}")
+        
+        # Check for other changes (Stage, Status, Remarks)
+        for idx, row in edited_df.iterrows():
+            original_row = original_df.iloc[idx]
+            
+            # Check if any other fields changed
+            fields_changed = False
+            for col in ["Stage", "Status", "Remarks"]:
+                if str(row[col]) != str(original_row[col]):
+                    fields_changed = True
+                    break
+            
+            if fields_changed:
+                case_id = row["ID"]
+                updated_case_data = row.to_dict()
+                
+                if sheets_service.update_case(case_id, updated_case_data):
+                    st.success(f"✅ Updated case {row['Case Number']} details")
+                else:
+                    st.error(f"❌ Failed to update case {row['Case Number']}")
+        
+        st.rerun()  # Refresh the page to show updated data
+        
+    except Exception as e:
+        st.error(f"❌ Error updating cases: {e}")
+
+
+def update_pending_cases(edited_df, original_df):
+    """Update pending cases with previous date handling"""
+    from models.database import get_connection
+    sheets_service = get_connection()
+    
+    try:
+        # Find changes in the edited dataframe
+        for idx, row in edited_df.iterrows():
+            original_row = original_df.iloc[idx]
+            
+            # Check if upcoming date changed
+            if str(row["Upcoming Date"]) != str(original_row["Upcoming Date"]):
+                # Get the case ID
+                case_id = row["ID"]
+                
+                # Prepare the updated case data
+                updated_case_data = row.to_dict()
+                
+                # Handle previous dates - move old upcoming date to previous dates
+                old_upcoming_date = str(original_row["Upcoming Date"])
+                previous_dates = str(original_row["Previous Dates"]) if original_row["Previous Dates"] else ""
+                
+                # Add old upcoming date to previous dates if not already there
+                if previous_dates:
+                    previous_dates_list = previous_dates.split("|")
+                else:
+                    previous_dates_list = []
+                
+                if old_upcoming_date not in previous_dates_list:
+                    previous_dates_list.append(old_upcoming_date)
+                
+                updated_case_data["Previous Dates"] = "|".join(previous_dates_list)
+                updated_case_data["Upcoming Date"] = str(row["Upcoming Date"])
+                
+                # Update in backend
+                if sheets_service.update_case(case_id, updated_case_data):
+                    st.success(f"✅ Updated case {row['Case Number']} - Previous date moved to history")
+                else:
+                    st.error(f"❌ Failed to update case {row['Case Number']}")
+        
+        # Check for other changes (Stage, Status, Remarks)
+        for idx, row in edited_df.iterrows():
+            original_row = original_df.iloc[idx]
+            
+            # Check if any other fields changed
+            fields_changed = False
+            for col in ["Stage", "Status", "Remarks"]:
+                if str(row[col]) != str(original_row[col]):
+                    fields_changed = True
+                    break
+            
+            if fields_changed:
+                case_id = row["ID"]
+                updated_case_data = row.to_dict()
+                
+                if sheets_service.update_case(case_id, updated_case_data):
+                    st.success(f"✅ Updated case {row['Case Number']} details")
+                else:
+                    st.error(f"❌ Failed to update case {row['Case Number']}")
+        
+        st.rerun()  # Refresh the page to show updated data
+        
+    except Exception as e:
+        st.error(f"❌ Error updating cases: {e}")
+
+
+def update_date_cases(edited_df, original_df):
+    """Update cases by date with previous date handling"""
+    from models.database import get_connection
+    sheets_service = get_connection()
+    
+    try:
+        # Find changes in the edited dataframe
+        for idx, row in edited_df.iterrows():
+            original_row = original_df.iloc[idx]
+            
+            # Check if upcoming date changed
+            if str(row["Upcoming Date"]) != str(original_row["Upcoming Date"]):
+                # Get the case ID
+                case_id = row["ID"]
+                
+                # Prepare the updated case data
+                updated_case_data = row.to_dict()
+                
+                # Handle previous dates - move old upcoming date to previous dates
+                old_upcoming_date = str(original_row["Upcoming Date"])
+                previous_dates = str(original_row["Previous Dates"]) if original_row["Previous Dates"] else ""
+                
+                # Add old upcoming date to previous dates if not already there
+                if previous_dates:
+                    previous_dates_list = previous_dates.split("|")
+                else:
+                    previous_dates_list = []
+                
+                if old_upcoming_date not in previous_dates_list:
+                    previous_dates_list.append(old_upcoming_date)
+                
+                updated_case_data["Previous Dates"] = "|".join(previous_dates_list)
+                updated_case_data["Upcoming Date"] = str(row["Upcoming Date"])
+                
+                # Update in backend
+                if sheets_service.update_case(case_id, updated_case_data):
+                    st.success(f"✅ Updated case {row['Case Number']} - Previous date moved to history")
+                else:
+                    st.error(f"❌ Failed to update case {row['Case Number']}")
+        
+        # Check for other changes (Stage, Status, Remarks)
+        for idx, row in edited_df.iterrows():
+            original_row = original_df.iloc[idx]
+            
+            # Check if any other fields changed
+            fields_changed = False
+            for col in ["Stage", "Status", "Remarks"]:
+                if str(row[col]) != str(original_row[col]):
+                    fields_changed = True
+                    break
+            
+            if fields_changed:
+                case_id = row["ID"]
+                updated_case_data = row.to_dict()
+                
+                if sheets_service.update_case(case_id, updated_case_data):
+                    st.success(f"✅ Updated case {row['Case Number']} details")
+                else:
+                    st.error(f"❌ Failed to update case {row['Case Number']}")
+        
+        st.rerun()  # Refresh the page to show updated data
+        
+    except Exception as e:
+        st.error(f"❌ Error updating cases: {e}")
+
+
+def update_today_cases(edited_df, original_df):
+    """Update today's cases with previous date handling"""
+    from models.database import get_connection
+    sheets_service = get_connection()
+    
+    try:
+        # Find changes in the edited dataframe
+        for idx, row in edited_df.iterrows():
+            original_row = original_df.iloc[idx]
+            
+            # Check if upcoming date changed
+            if str(row["Upcoming Date"]) != str(original_row["Upcoming Date"]):
+                # Get the case ID
+                case_id = row["ID"]
+                
+                # Prepare the updated case data
+                updated_case_data = row.to_dict()
+                
+                # Handle previous dates - move old upcoming date to previous dates
+                old_upcoming_date = str(original_row["Upcoming Date"])
+                previous_dates = str(original_row["Previous Dates"]) if original_row["Previous Dates"] else ""
+                
+                # Add old upcoming date to previous dates if not already there
+                if previous_dates:
+                    previous_dates_list = previous_dates.split("|")
+                else:
+                    previous_dates_list = []
+                
+                if old_upcoming_date not in previous_dates_list:
+                    previous_dates_list.append(old_upcoming_date)
+                
+                updated_case_data["Previous Dates"] = "|".join(previous_dates_list)
+                updated_case_data["Upcoming Date"] = str(row["Upcoming Date"])
+                
+                # Update in backend
+                if sheets_service.update_case(case_id, updated_case_data):
+                    st.success(f"✅ Updated case {row['Case Number']} - Previous date moved to history")
+                else:
+                    st.error(f"❌ Failed to update case {row['Case Number']}")
+        
+        # Check for other changes (Stage, Status, Remarks)
+        for idx, row in edited_df.iterrows():
+            original_row = original_df.iloc[idx]
+            
+            # Check if any other fields changed
+            fields_changed = False
+            for col in ["Stage", "Status", "Remarks"]:
+                if str(row[col]) != str(original_row[col]):
+                    fields_changed = True
+                    break
+            
+            if fields_changed:
+                case_id = row["ID"]
+                updated_case_data = row.to_dict()
+                
+                if sheets_service.update_case(case_id, updated_case_data):
+                    st.success(f"✅ Updated case {row['Case Number']} details")
+                else:
+                    st.error(f"❌ Failed to update case {row['Case Number']}")
+        
+        st.rerun()  # Refresh the page to show updated data
+        
+    except Exception as e:
+        st.error(f"❌ Error updating cases: {e}")
+
+
+def update_search_results(edited_df, original_df):
+    """Update search results with previous date handling"""
+    from models.database import get_connection
+    sheets_service = get_connection()
+    
+    try:
+        # Find changes in the edited dataframe
+        for idx, row in edited_df.iterrows():
+            original_row = original_df.iloc[idx]
+            
+            # Check if upcoming date changed
+            if str(row["Upcoming Date"]) != str(original_row["Upcoming Date"]):
+                # Get the case ID
+                case_id = row["ID"]
+                
+                # Prepare the updated case data
+                updated_case_data = row.to_dict()
+                
+                # Handle previous dates - move old upcoming date to previous dates
+                old_upcoming_date = str(original_row["Upcoming Date"])
+                previous_dates = str(original_row["Previous Dates"]) if original_row["Previous Dates"] else ""
+                
+                # Add old upcoming date to previous dates if not already there
+                if previous_dates:
+                    previous_dates_list = previous_dates.split("|")
+                else:
+                    previous_dates_list = []
+                
+                if old_upcoming_date not in previous_dates_list:
+                    previous_dates_list.append(old_upcoming_date)
+                
+                updated_case_data["Previous Dates"] = "|".join(previous_dates_list)
+                updated_case_data["Upcoming Date"] = str(row["Upcoming Date"])
+                
+                # Update in backend
+                if sheets_service.update_case(case_id, updated_case_data):
+                    st.success(f"✅ Updated case {row['Case Number']} - Previous date moved to history")
+                else:
+                    st.error(f"❌ Failed to update case {row['Case Number']}")
+        
+        # Check for other changes (Stage, Status, Remarks)
+        for idx, row in edited_df.iterrows():
+            original_row = original_df.iloc[idx]
+            
+            # Check if any other fields changed
+            fields_changed = False
+            for col in ["Stage", "Status", "Remarks"]:
+                if str(row[col]) != str(original_row[col]):
+                    fields_changed = True
+                    break
+            
+            if fields_changed:
+                case_id = row["ID"]
+                updated_case_data = row.to_dict()
+                
+                if sheets_service.update_case(case_id, updated_case_data):
+                    st.success(f"✅ Updated case {row['Case Number']} details")
+                else:
+                    st.error(f"❌ Failed to update case {row['Case Number']}")
+        
+        st.rerun()  # Refresh the page to show updated data
+        
+    except Exception as e:
+        st.error(f"❌ Error updating cases: {e}")
+
+
 def update_upcoming_hearings(edited_df, original_df):
     """Update upcoming hearings with previous date handling"""
     from models.database import get_connection
@@ -938,7 +1268,60 @@ def page_search(df: pd.DataFrame):
             filtered_search_df = filtered_search_df[filtered_search_df["Company Name"] == search_company_filter]
         
         st.markdown(f"**Showing {len(filtered_search_df)} of {len(dff)} results**")
-        st.dataframe(filtered_search_df, use_container_width=True, hide_index=True)
+        
+        # Add CSV download button
+        csv_data = filtered_search_df.to_csv(index=False)
+        st.download_button(
+            label="📥 Download CSV",
+            data=csv_data,
+            file_name=f"search_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+            mime="text/csv",
+            key="download_search_csv"
+        )
+        
+        # Show filtered data with edit functionality
+        if not filtered_search_df.empty:
+            # Convert date columns to proper date format for editing
+            edit_df = filtered_search_df.copy()
+            if 'Upcoming Date' in edit_df.columns:
+                edit_df['Upcoming Date'] = edit_df['Upcoming Date'].apply(parse_date)
+            
+            # Use data_editor for inline editing
+            edited_df = st.data_editor(
+                edit_df,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Upcoming Date": st.column_config.DateColumn(
+                        "Upcoming Date",
+                        help="Click to edit the upcoming hearing date",
+                        format="YYYY-MM-DD",
+                        step=1,
+                    ),
+                    "Stage": st.column_config.TextColumn(
+                        "Stage",
+                        help="Current stage of the case",
+                        max_chars=50,
+                    ),
+                    "Status": st.column_config.SelectboxColumn(
+                        "Status",
+                        help="Case status",
+                        options=["OPEN", "COMPROMISED", "DD", "AWARD"],
+                    ),
+                    "Remarks": st.column_config.TextColumn(
+                        "Remarks",
+                        help="Additional remarks",
+                        max_chars=200,
+                    ),
+                },
+                disabled=["ID", "Case Number", "Case Title", "Case Type", "Location", "Company Name", "Previous Dates", "Claimant Advocate Name", "Claimant Advocate Mobile Number"],
+                num_rows="fixed",
+                key="search_results_editor"
+            )
+            
+            # Update button
+            if st.button("💾 Save Changes", key="save_search_changes"):
+                update_search_results(edited_df, filtered_search_df)
 
 
 def page_today(df: pd.DataFrame):
@@ -979,7 +1362,60 @@ def page_today(df: pd.DataFrame):
             filtered_today_df = filtered_today_df[filtered_today_df["Company Name"] == today_company_filter]
         
         st.markdown(f"**Showing {len(filtered_today_df)} of {len(dff)} cases**")
-        st.dataframe(filtered_today_df, use_container_width=True, hide_index=True)
+        
+        # Add CSV download button
+        csv_data = filtered_today_df.to_csv(index=False)
+        st.download_button(
+            label="📥 Download CSV",
+            data=csv_data,
+            file_name=f"todays_cases_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+            mime="text/csv",
+            key="download_today_csv"
+        )
+        
+        # Show filtered data with edit functionality
+        if not filtered_today_df.empty:
+            # Convert date columns to proper date format for editing
+            edit_df = filtered_today_df.copy()
+            if 'Upcoming Date' in edit_df.columns:
+                edit_df['Upcoming Date'] = edit_df['Upcoming Date'].apply(parse_date)
+            
+            # Use data_editor for inline editing
+            edited_df = st.data_editor(
+                edit_df,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Upcoming Date": st.column_config.DateColumn(
+                        "Upcoming Date",
+                        help="Click to edit the upcoming hearing date",
+                        format="YYYY-MM-DD",
+                        step=1,
+                    ),
+                    "Stage": st.column_config.TextColumn(
+                        "Stage",
+                        help="Current stage of the case",
+                        max_chars=50,
+                    ),
+                    "Status": st.column_config.SelectboxColumn(
+                        "Status",
+                        help="Case status",
+                        options=["OPEN", "COMPROMISED", "DD", "AWARD"],
+                    ),
+                    "Remarks": st.column_config.TextColumn(
+                        "Remarks",
+                        help="Additional remarks",
+                        max_chars=200,
+                    ),
+                },
+                disabled=["ID", "Case Number", "Case Title", "Case Type", "Location", "Company Name", "Previous Dates", "Claimant Advocate Name", "Claimant Advocate Mobile Number"],
+                num_rows="fixed",
+                key="today_cases_editor"
+            )
+            
+            # Update button
+            if st.button("💾 Save Changes", key="save_today_changes"):
+                update_today_cases(edited_df, filtered_today_df)
 
 
 def page_by_date(df: pd.DataFrame):
@@ -1002,7 +1438,60 @@ def page_by_date(df: pd.DataFrame):
         st.info(f"No cases scheduled for {dt.strftime('%B %d, %Y')}.")
     else:
         dff = pd.DataFrame(cases_by_date)
-        st.dataframe(dff, use_container_width=True, hide_index=True)
+        
+        # Add CSV download button
+        csv_data = dff.to_csv(index=False)
+        st.download_button(
+            label="📥 Download CSV",
+            data=csv_data,
+            file_name=f"cases_by_date_{dt.strftime('%Y%m%d')}_{datetime.now().strftime('%H%M%S')}.csv",
+            mime="text/csv",
+            key="download_date_csv"
+        )
+        
+        # Show data with edit functionality
+        if not dff.empty:
+            # Convert date columns to proper date format for editing
+            edit_df = dff.copy()
+            if 'Upcoming Date' in edit_df.columns:
+                edit_df['Upcoming Date'] = edit_df['Upcoming Date'].apply(parse_date)
+            
+            # Use data_editor for inline editing
+            edited_df = st.data_editor(
+                edit_df,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Upcoming Date": st.column_config.DateColumn(
+                        "Upcoming Date",
+                        help="Click to edit the upcoming hearing date",
+                        format="YYYY-MM-DD",
+                        step=1,
+                    ),
+                    "Stage": st.column_config.TextColumn(
+                        "Stage",
+                        help="Current stage of the case",
+                        max_chars=50,
+                    ),
+                    "Status": st.column_config.SelectboxColumn(
+                        "Status",
+                        help="Case status",
+                        options=["OPEN", "COMPROMISED", "DD", "AWARD"],
+                    ),
+                    "Remarks": st.column_config.TextColumn(
+                        "Remarks",
+                        help="Additional remarks",
+                        max_chars=200,
+                    ),
+                },
+                disabled=["ID", "Case Number", "Case Title", "Case Type", "Location", "Company Name", "Previous Dates", "Claimant Advocate Name", "Claimant Advocate Mobile Number"],
+                num_rows="fixed",
+                key="date_cases_editor"
+            )
+            
+            # Update button
+            if st.button("💾 Save Changes", key="save_date_changes"):
+                update_date_cases(edited_df, dff)
 
 
 def page_pending(df: pd.DataFrame):
@@ -1021,7 +1510,60 @@ def page_pending(df: pd.DataFrame):
         st.info("No pending cases found.")
     else:
         dff = pd.DataFrame(pending_cases)
-        st.dataframe(dff, use_container_width=True, hide_index=True)
+        
+        # Add CSV download button
+        csv_data = dff.to_csv(index=False)
+        st.download_button(
+            label="📥 Download CSV",
+            data=csv_data,
+            file_name=f"pending_cases_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+            mime="text/csv",
+            key="download_pending_csv"
+        )
+        
+        # Show data with edit functionality
+        if not dff.empty:
+            # Convert date columns to proper date format for editing
+            edit_df = dff.copy()
+            if 'Upcoming Date' in edit_df.columns:
+                edit_df['Upcoming Date'] = edit_df['Upcoming Date'].apply(parse_date)
+            
+            # Use data_editor for inline editing
+            edited_df = st.data_editor(
+                edit_df,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Upcoming Date": st.column_config.DateColumn(
+                        "Upcoming Date",
+                        help="Click to edit the upcoming hearing date",
+                        format="YYYY-MM-DD",
+                        step=1,
+                    ),
+                    "Stage": st.column_config.TextColumn(
+                        "Stage",
+                        help="Current stage of the case",
+                        max_chars=50,
+                    ),
+                    "Status": st.column_config.SelectboxColumn(
+                        "Status",
+                        help="Case status",
+                        options=["OPEN", "COMPROMISED", "DD", "AWARD"],
+                    ),
+                    "Remarks": st.column_config.TextColumn(
+                        "Remarks",
+                        help="Additional remarks",
+                        max_chars=200,
+                    ),
+                },
+                disabled=["ID", "Case Number", "Case Title", "Case Type", "Location", "Company Name", "Previous Dates", "Claimant Advocate Name", "Claimant Advocate Mobile Number"],
+                num_rows="fixed",
+                key="pending_cases_editor"
+            )
+            
+            # Update button
+            if st.button("💾 Save Changes", key="save_pending_changes"):
+                update_pending_cases(edited_df, dff)
 
 
 def page_by_company(df: pd.DataFrame):
@@ -1050,7 +1592,60 @@ def page_by_company(df: pd.DataFrame):
             st.info(f"No cases found for {comp}.")
         else:
             dff = pd.DataFrame(company_cases)
-    st.dataframe(dff, use_container_width=True, hide_index=True)
+            
+            # Add CSV download button
+            csv_data = dff.to_csv(index=False)
+            st.download_button(
+                label="📥 Download CSV",
+                data=csv_data,
+                file_name=f"company_cases_{comp.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                mime="text/csv",
+                key="download_company_csv"
+            )
+            
+            # Show data with edit functionality
+            if not dff.empty:
+                # Convert date columns to proper date format for editing
+                edit_df = dff.copy()
+                if 'Upcoming Date' in edit_df.columns:
+                    edit_df['Upcoming Date'] = edit_df['Upcoming Date'].apply(parse_date)
+                
+                # Use data_editor for inline editing
+                edited_df = st.data_editor(
+                    edit_df,
+                    use_container_width=True,
+                    hide_index=True,
+                    column_config={
+                        "Upcoming Date": st.column_config.DateColumn(
+                            "Upcoming Date",
+                            help="Click to edit the upcoming hearing date",
+                            format="YYYY-MM-DD",
+                            step=1,
+                        ),
+                        "Stage": st.column_config.TextColumn(
+                            "Stage",
+                            help="Current stage of the case",
+                            max_chars=50,
+                        ),
+                        "Status": st.column_config.SelectboxColumn(
+                            "Status",
+                            help="Case status",
+                            options=["OPEN", "COMPROMISED", "DD", "AWARD"],
+                        ),
+                        "Remarks": st.column_config.TextColumn(
+                            "Remarks",
+                            help="Additional remarks",
+                            max_chars=200,
+                        ),
+                    },
+                    disabled=["ID", "Case Number", "Case Title", "Case Type", "Location", "Company Name", "Previous Dates", "Claimant Advocate Name", "Claimant Advocate Mobile Number"],
+                    num_rows="fixed",
+                    key="company_cases_editor"
+                )
+                
+                # Update button
+                if st.button("💾 Save Changes", key="save_company_changes"):
+                    update_company_cases(edited_df, dff)
 
 
 def _timeline(previous: str) -> pd.DataFrame:
