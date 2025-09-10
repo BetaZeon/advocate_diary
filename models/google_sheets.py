@@ -31,17 +31,13 @@ class GoogleSheetsService:
                 creds_info = st.secrets['google_sheets']
                 spreadsheet_id = st.secrets['google_sheets']['spreadsheet_id']
                 log_google_sheets_operation("connection_attempt", f"Using Streamlit secrets, Spreadsheet ID: {spreadsheet_id}")
-                st.info("🔧 Using credentials from Streamlit secrets")
             else:
                 warning("No Streamlit secrets found. Using mock data for demonstration.")
-                st.warning("⚠️ No Streamlit secrets found. Using mock data for demonstration.")
-                st.info("💡 **To fix this**: Create a `.streamlit/secrets.toml` file with your Google Sheets credentials")
                 self._use_mock_data()
                 return
             
             if spreadsheet_id == 'demo_spreadsheet' or not spreadsheet_id:
                 warning("Spreadsheet ID not configured. Using mock data for demonstration.")
-                st.warning("⚠️ Spreadsheet ID not configured. Using mock data for demonstration.")
                 self._use_mock_data()
                 return
             
@@ -69,7 +65,6 @@ class GoogleSheetsService:
             self.worksheet = spreadsheet.worksheet(self.worksheet_name)
             log_google_sheets_operation("worksheet_access", f"Successfully accessed worksheet: {self.worksheet_name}")
             
-            st.success("✅ Successfully connected to Google Sheets!")
             log_function_result("_setup_connection", "SUCCESS - Connected to Google Sheets")
             
         except Exception as e:
@@ -78,19 +73,12 @@ class GoogleSheetsService:
             
             if "Incorrect padding" in error_msg:
                 error("Incorrect padding error: Private key formatting issue in secrets.toml")
-                st.error("🔑 **Google Sheets Authentication Error**: Incorrect private key format. Please check your credentials.")
-                st.info("💡 **Tip**: Make sure the private key in your secrets file has proper newline characters (\\n)")
             elif "invalid_grant" in error_msg:
                 error("Invalid grant error: Service account credentials may be expired or invalid")
-                st.error("🔑 **Google Sheets Authentication Error**: Invalid credentials. Please check your service account key.")
             elif "access_denied" in error_msg:
                 error("Access denied error: Service account doesn't have permission to access spreadsheet")
-                st.error("🔑 **Google Sheets Authentication Error**: Access denied. Please check if the service account has access to the spreadsheet.")
             else:
                 error(f"Could not connect to Google Sheets: {error_msg}")
-                st.warning(f"⚠️ Could not connect to Google Sheets: {e}")
-            
-            st.info("🔄 Using mock data for demonstration. Check your credentials to connect to Google Sheets.")
             self._use_mock_data()
             log_function_result("_setup_connection", "FAILED - Using mock data")
     

@@ -13,7 +13,14 @@ class CaseView:
         self.controller = CaseController()
 
     def add_case(self):
-        st.header("Add New Case")
+        st.markdown("""
+        <div class="app-header">
+            <div class="app-title">📋 Add New Case</div>
+            <div class="app-subtitle">Complete the case information below to add a new legal case to your practice management system</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown('<div class="card">', unsafe_allow_html=True)
 
         validation_errors = {}
 
@@ -75,9 +82,18 @@ class CaseView:
                             st.success("Case added successfully!")
                         except Exception as e:
                             st.error(f"Error adding case: {e}")
+        
+        st.markdown('</div>', unsafe_allow_html=True)
 
     def update_case(self):
-        st.header("Update Case")
+        st.markdown("""
+        <div class="app-header">
+            <div class="app-title">✍️ Update Case Information</div>
+            <div class="app-subtitle">Search for an existing case to modify its details and status</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown('<div class="card">', unsafe_allow_html=True)
         search_query = st.text_input("Enter Case Number or Case Title")
         
         if st.button("Search"):
@@ -130,9 +146,18 @@ class CaseView:
                         st.success("Case updated successfully!")
                     except Exception as e:
                         st.error(f"Error updating case: {e}")
+        
+        st.markdown('</div>', unsafe_allow_html=True)
 
     def search_case(self):
-        st.header("Search Case")
+        st.markdown("""
+        <div class="app-header">
+            <div class="app-title">🔍 Search Cases</div>
+            <div class="app-subtitle">Locate specific cases using various search criteria and filters</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown('<div class="card">', unsafe_allow_html=True)
         search_criteria = st.selectbox("Search Case By", ["Case Number", "Case Title"])
         search_query = st.text_input(f"Enter {search_criteria}", "")
 
@@ -163,9 +188,18 @@ class CaseView:
                 
                 df_cases = pd.DataFrame(formatted_cases, columns=config_loader.load_config()['headers'])
                 st.dataframe(df_cases)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
 
     def search_cases_by_company_name(self):
-        st.header("Search Cases By Company Name")
+        st.markdown("""
+        <div class="app-header">
+            <div class="app-title">🏢 Search Cases By Company</div>
+            <div class="app-subtitle">Find all cases associated with a specific company</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown('<div class="card">', unsafe_allow_html=True)
         company_name = st.selectbox("Company Name",
                                     config_loader.load_config()['company_names'], key="company_name")
         cases = self.controller.search_case_by_company(company_name)
@@ -194,9 +228,18 @@ class CaseView:
            
            df_cases = pd.DataFrame(formatted_cases, columns=config_loader.load_config()['headers'])
            st.dataframe(df_cases)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
 
     def todays_case_list(self):
-        st.header("Today's Case List")
+        st.markdown("""
+        <div class="app-header">
+            <div class="app-title">⚖️ Today's Hearings</div>
+            <div class="app-subtitle">Review all cases scheduled for today's court proceedings</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown('<div class="card">', unsafe_allow_html=True)
         with st.form("todays_case_list"):
             submit_button = st.form_submit_button("Get Cases")
 
@@ -241,9 +284,18 @@ class CaseView:
             )
             if st.button("Update Cases"):
                 update_cases_and_previous_dates(self, edited_df, date.today())
+        
+        st.markdown('</div>', unsafe_allow_html=True)
 
     def cases_by_date(self):
-        st.header("Cases by Date")
+        st.markdown("""
+        <div class="app-header">
+            <div class="app-title">📆 Cases by Date</div>
+            <div class="app-subtitle">View cases scheduled for a specific date</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown('<div class="card">', unsafe_allow_html=True)
         with st.form("cases_by_date_form"):
             selected_date = st.date_input("Select Date", value=pd.Timestamp.now().date())
             submit_button = st.form_submit_button("Get Cases")
@@ -292,9 +344,18 @@ class CaseView:
             )
             if st.button("Update Cases"):
                 update_cases_and_previous_dates(self, edited_df, selected_date)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
 
     def pending_cases(self):
-        st.header("Pending Cases")
+        st.markdown("""
+        <div class="app-header">
+            <div class="app-title">⏳ Pending Cases</div>
+            <div class="app-subtitle">View all cases that are currently pending</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown('<div class="card">', unsafe_allow_html=True)
         cases = self.controller.get_pending_cases()
         if not cases:
             st.write("No pending cases found.")
@@ -321,3 +382,5 @@ class CaseView:
             
             df_cases = pd.DataFrame(formatted_cases, columns=config_loader.load_config()['headers'])
             st.dataframe(df_cases)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
